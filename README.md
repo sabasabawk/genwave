@@ -11,11 +11,13 @@ GenWave connects people across generations and backgrounds through shared intere
 - Conversation over content — less about posting for likes, more about real discussion and connection
 
 ## Key Features (MVP)
+## Key Features (MVP — Version 1)
 - User profiles
+- Interest-based groups/communities
+
+## Planned for Later Versions
 - Posts / feed
 - Messaging
-- Interest-based groups or communities
-- (Add more as decided)
 
 ## Monetization
 - Freemium model: free to use, supported by ads (Google AdMob)
