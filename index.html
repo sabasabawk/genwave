@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenWave - Firebase Setup</title>
+  <style>
+    body { font-family: sans-serif; max-width: 450px; margin: 40px auto; padding: 0 16px; }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    input, textarea, button { padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <h2>GenWave Sign Up</h2>
+  
+  <form id="signup-form">
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <input type="text" id="display-name" placeholder="Full Name" required />
+    <textarea id="bio" placeholder="Short Bio (1-2 lines)" rows="2"></textarea>
+    <input type="text" id="interests" placeholder="Interests (comma separated: e.g. music, football)" />
+    <input type="text" id="location" placeholder="City/Country (Optional)" />
+    
+    <button type="submit">Create Account</button>
+  </form>
+
+  <script type="module">
+    // 1. Import SDK modules from CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 2. Paste your Firebase Web Config object here (found in Firebase Console Settings)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // 3. Initialize Firebase services
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 4. Handle Form Submission & Create User Document
+    const signupForm = document.getElementById("signup-form");
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const name = document.getElementById("display-name").value;
+      const bio = document.getElementById("bio").value;
+      const location = document.getElementById("location").value;
+      
+      // Convert comma-separated string into an array of clean strings
+      const rawInterests = document.getElementById("interests").value;
+      const interests = rawInterests ? rawInterests.split(",").map(item => item.trim()).filter(Boolean) : [];
+
+      try {
+        // Step A: Create standard Auth account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Step B: Write extra profile fields matching your GenWave DB schema into Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: name,
+          photoUrl: user.photoURL || "",
+          bio: bio,
+          interests: interests,
+          location: location || null,
+          createdAt: new Date().toISOString()
+        });
+
+        alert("Account successfully created and profile saved!");
+        signupForm.reset();
+
+      } catch (error) {
+        console.error("Error during sign-up:", error);
+        alert(`Error: ${error.message}`);
+      }
+    });
+  </script>
+</body>
+</html>
