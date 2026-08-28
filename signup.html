@@ -71,6 +71,10 @@
       transition: background 0.2s ease;
     }
     button:hover { background-color: var(--primary-hover); }
+    button:disabled {
+      background-color: #a0c4e8;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -109,8 +113,14 @@
     const db = getFirestore(app);
 
     const signupForm = document.getElementById('signup-form');
+    const submitBtn = document.getElementById('submit-btn');
+
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating account...";
+
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const fullName = document.getElementById('fullname').value;
@@ -134,6 +144,9 @@
         signupForm.reset();
       } catch (error) {
         alert("Error: " + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Get Started";
       }
     });
   </script>
