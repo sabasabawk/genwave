@@ -40,3 +40,25 @@ Early concept stage — building out MVP definition before development begins.
 - Each group has: name, description, category (e.g. Music, Sports, Cooking, Faith, Tech)
 - Users find groups by browsing categories or searching by name/keyword
 - Each group displays member count and a join button
+## Data Structure (Firebase)
+
+### users collection
+- uid (auto-generated ID)
+- name
+- photoUrl
+- bio
+- interests (list/array)
+- location (optional)
+
+### groups collection
+- groupId (auto-generated ID)
+- name
+- description
+- category
+- createdBy (uid of creator)
+- memberCount
+
+### group_members collection (tracks who joined which group)
+- groupId
+- uid
+- joinedAt (date/time)
