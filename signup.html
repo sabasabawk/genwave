@@ -140,8 +140,7 @@
           location: location,
           createdAt: new Date()
         });
-        alert("Welcome to GenWave! Account created successfully.");
-        signupForm.reset();
+        window.location.href = "home.html";
       } catch (error) {
         alert("Error: " + error.message);
       } finally {
