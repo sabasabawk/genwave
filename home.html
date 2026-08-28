@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - GenWave</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --primary-hover: #0056b3;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --muted-text: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 70px;
+    }
+
+    /* Top bar */
+    .topbar {
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar .logo { font-size: 20px; font-weight: 800; }
+    .topbar .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .greeting {
+      padding: 20px;
+    }
+    .greeting h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+    .greeting p {
+      margin: 0;
+      color: var(--muted-text);
+      font-size: 14px;
+    }
+
+    /* Category chips */
+    .chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 0 20px 16px;
+    }
+    .chip {
+      flex-shrink: 0;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+    .chip.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    /* Feed */
+    .feed {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 0;
+    }
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .post-user { font-weight: 700; font-size: 14px; }
+    .post-meta { font-size: 12px; color: var(--muted-text); }
+
+    .post-body {
+      padding: 10px 16px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .post-tag {
+      display: inline-block;
+      background: #e8f2ff;
+      color: var(--primary-color);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .post-actions {
+      display: flex;
+      border-top: 1px solid #f0f0f0;
+    }
+    .post-actions button {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted-text);
+      cursor: pointer;
+    }
+    .post-actions button:active { color: var(--primary-color); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted-text);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted-text);
+      text-decoration: none;
+    }
+    .nav-item.active { color: var(--primary-color); font-weight: 700; }
+    .nav-item .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="logo">GenWave</div>
+    <div class="avatar" id="user-initial">?</div>
+  </div>
+
+  <div class="greeting">
+    <h2 id="greeting-text">Welcome back 👋</h2>
+    <p>Here's what's happening in your communities</p>
+  </div>
+
+  <div class="chips">
+    <div class="chip active">For You</div>
+    <div class="chip">Music</div>
+    <div class="chip">Sports</div>
+    <div class="chip">Tech</div>
+    <div class="chip">Faith</div>
+    <div class="chip">Cooking</div>
+  </div>
+
+  <div class="feed" id="feed">
+    <div class="empty-state">
+      <div class="icon">🌊</div>
+      <p><strong>Your feed is just getting started.</strong><br>Join a group or add interests to see posts here.</p>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item active">
+      <div class="nav-icon">🏠</div>
+      Home
+    </a>
+    <a href="groups.html" class="nav-item">
+      <div class="nav-icon">👥</div>
+      Groups
+    </a>
+    <a href="profile.html" class="nav-item">
+      <div class="nav-icon">👤</div>
+      Profile
+    </a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            const firstName = (data.fullName || "there").split(" ")[0];
+            document.getElementById('greeting-text').textContent = `Welcome back, ${firstName} 👋`;
+            document.getElementById('user-initial').textContent = firstName.charAt(0).toUpperCase();
+          }
+        } catch (err) {
+          console.log("Could not load profile:", err);
+        }
+      } else {
+        // Not logged in — send to signup
+        window.location.href = "signup.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
