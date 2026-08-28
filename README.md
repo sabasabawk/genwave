@@ -26,3 +26,12 @@ GenWave connects people across generations and backgrounds through shared intere
 
 ## Status
 Early concept stage — building out MVP definition before development begins.
+## Screen Specs
+
+### Profile Screen
+- Profile photo
+- Name
+- Short bio (1-2 lines)
+- Interests/tags (e.g. music, football, cooking) — connects users to relevant groups
+- Location (optional — city/country only, not exact address)
+- Viewable by other users (not just self)
