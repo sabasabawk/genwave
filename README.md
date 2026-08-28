@@ -35,3 +35,8 @@ Early concept stage — building out MVP definition before development begins.
 - Interests/tags (e.g. music, football, cooking) — connects users to relevant groups
 - Location (optional — city/country only, not exact address)
 - Viewable by other users (not just self)
+### Groups Screen
+- Users can create their own groups (any interest/topic)
+- Each group has: name, description, category (e.g. Music, Sports, Cooking, Faith, Tech)
+- Users find groups by browsing categories or searching by name/keyword
+- Each group displays member count and a join button
