@@ -18,7 +18,9 @@ GenWave connects people across generations and backgrounds through shared intere
 - (Add more as decided)
 
 ## Monetization
-- (To be decided: ads, subscriptions, in-app purchases, or a mix)
+- Freemium model: free to use, supported by ads (Google AdMob)
+- Premium option: small subscription or one-time purchase to remove ads and unlock extra features (e.g. special profile badges, priority in interest groups)
+- Future potential: in-app purchases for specific features as the app grows
 
 ## Status
 Early concept stage — building out MVP definition before development begins.
