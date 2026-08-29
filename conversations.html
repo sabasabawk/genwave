@@ -24,12 +24,26 @@
     .topbar {
       background: linear-gradient(135deg, #007bff, #00d2ff);
       color: white;
-      padding: 18px 20px;
+      padding: 16px 20px;
       font-size: 20px;
       font-weight: 800;
       position: sticky;
       top: 0;
       z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(5px);
     }
     .convo-list { padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; }
     .convo-card {
@@ -69,6 +83,18 @@
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--muted-text); }
     .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .btn-primary {
+      display: inline-block;
+      margin-top: 16px;
+      background: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
 
     .bottom-nav {
       position: fixed;
@@ -96,7 +122,10 @@
 </head>
 <body>
 
-  <div class="topbar">Messages</div>
+  <div class="topbar">
+    <span>Messages</span>
+    <a href="members.html" class="topbar-btn">🔍 Find Members</a>
+  </div>
 
   <div class="convo-list" id="convo-list">
     <div class="empty-state">
@@ -168,7 +197,13 @@
         const snapshot = await getDocs(convosQuery);
 
         if (snapshot.empty) {
-          convoList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>No conversations yet.<br>Visit a member's profile to say hello.</p></div>`;
+          convoList.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">💬</div>
+              <p>No conversations yet.<br>Start a conversation with other members!</p>
+              <a href="members.html" class="btn-primary">Find Members</a>
+            </div>
+          `;
           return;
         }
 
@@ -213,7 +248,13 @@
         convoList.innerHTML = cards.join('');
       } catch (err) {
         console.error("Error loading conversations:", err);
-        convoList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>No conversations yet.</p><a href="members.html" style="display:inline-block; margin-top:14px; background:#007bff; color:white; padding:12px 24px; border-radius:24px; text-decoration:none; font-weight:700; font-size:14px;">Find Members</a></div>`;
+        convoList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">💬</div>
+            <p>No conversations yet.</p>
+            <a href="members.html" class="btn-primary">Find Members</a>
+          </div>
+        `;
       }
     }
 
