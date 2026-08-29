@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- =====================================================
+     PART 1 OF 6 — DOCUMENT SETUP AND STYLES
+===================================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groups - GenWave</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --primary-hover: #0056b3;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --muted-text: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 70px;
+    }
+    .topbar {
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
+      padding: 18px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar .logo { font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+    .search-box input {
+      flex: 1;
+      border: none;
+      background: none;
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-box input::placeholder { color: rgba(255,255,255,0.8); }
+
+    .chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 16px 20px;
+    }
+    .chip {
+      flex-shrink: 0;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-color);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .groups-list {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .group-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .group-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .group-info { flex: 1; min-width: 0; }
+    .group-info h3 { margin: 0 0 3px; font-size: 15px; }
+    .group-info p {
+      margin: 0 0 4px;
+      font-size: 12px;
+      color: var(--muted-text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .group-meta { font-size: 11px; color: var(--muted-text); }
+    .join-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .join-btn.joined {
+      background: #e8f2ff;
+      color: var(--primary-color);
+    }
+    .join-btn:disabled { opacity: 0.6; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted-text);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 84px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      text-decoration: none;
+      z-index: 20;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted-text);
+      text-decoration: none;
+    }
+    .nav-item.active { color: var(--primary-color); font-weight: 700; }
+    .nav-item .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PART 2 OF 6 — TOP BAR WITH SEARCH
+===================================================== -->
+
+  <div class="topbar">
+    <div class="logo">Groups</div>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="Search groups...">
+    </div>
+  </div>
+
+<!-- =====================================================
+     PART 3 OF 6 — CATEGORY FILTER CHIPS
+===================================================== -->
+
+  <div class="chips" id="chips">
+    <div class="chip active" data-category="All">All</div>
+    <div class="chip" data-category="Music">Music</div>
+    <div class="chip" data-category="Sports">Sports</div>
+    <div class="chip" data-category="Tech">Tech</div>
+    <div class="chip" data-category="Faith">Faith</div>
+    <div class="chip" data-category="Cooking">Cooking</div>
+  </div>
+
+<!-- =====================================================
+     PART 4 OF 6 — GROUPS LIST
+===================================================== -->
+
+  <div class="groups-list" id="groups-list">
+    <div class="empty-state">
+      <div class="icon">👥</div>
+      <p>Loading groups...</p>
+    </div>
+  </div>
+
+<!-- =====================================================
+     PART 5 OF 6 — CREATE GROUP BUTTON + BOTTOM NAV
+===================================================== -->
+
+  <a href="create-group.html" class="fab">+</a>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <div class="nav-icon">🏠</div>
+      Home
+    </a>
+    <a href="groups.html" class="nav-item active">
+      <div class="nav-icon">👥</div>
+      Groups
+    </a>
+    <a href="profile.html" class="nav-item">
+      <div class="nav-icon">👤</div>
+      Profile
+    </a>
+  </div>
+
+<!-- =====================================================
+     PART 6 OF 6 — FIREBASE LOGIC
+===================================================== -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let allGroups = [];
+    let activeCategory = "All";
+    let joinedGroupIds = new Set();
+
+    const groupsList = document.getElementById('groups-list');
+    const searchInput = document.getElementById('search-input');
+    const chips = document.getElementById('chips');
+
+    function groupIcon(category) {
+      const icons = { Music: "🎵", Sports: "⚽", Tech: "💻", Faith: "🙏", Cooking: "🍲" };
+      return icons[category] || "🌊";
+    }
+
+    async function loadJoinedGroups() {
+      if (!currentUser) return;
+      const snap = await getDocs(collection(db, "users", currentUser.uid, "joinedGroups"));
+      joinedGroupIds = new Set(snap.docs.map(d => d.id));
+    }
+
+    async function loadGroups() {
+      try {
+        const snap = await getDocs(collection(db, "groups"));
+        allGroups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (allGroups.length === 0) {
+          await seedStarterGroups();
+          const snap2 = await getDocs(collection(db, "groups"));
+          allGroups = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+        renderGroups();
+      } catch (err) {
+        console.error("Error loading groups:", err);
+        groupsList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load groups.</p></div>`;
+      }
+    }
+
+    async function seedStarterGroups() {
+      const starters = [
+        { name: "Music Lovers", description: "Share songs, artists, and playlists", category: "Music" },
+        { name: "GenWave Tech Talk", description: "Discuss the latest in technology", category: "Tech" },
+        { name: "Faith & Fellowship", description: "Encouragement and faith discussions", category: "Faith" },
+        { name: "Home Cooking Club", description: "Recipes and cooking tips", category: "Cooking" },
+        { name: "Sports Fans United", description: "Talk football, basketball, and more", category: "Sports" }
+      ];
+      for (const g of starters) {
+        const ref = doc(collection(db, "groups"));
+        await setDoc(ref, { ...g, memberCount: 0, createdBy: "system", createdAt: new Date() });
+      }
+    }
+
+    function renderGroups() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      let filtered = allGroups.filter(g => {
+        const matchesCategory = activeCategory === "All" || g.category === activeCategory;
+        const matchesSearch = !searchTerm || g.name.toLowerCase().includes(searchTerm);
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        groupsList.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>No groups found. Try another search or create one!</p></div>`;
+        return;
+      }
+
+      groupsList.innerHTML = filtered.map(g => {
+        const isJoined = joinedGroupIds.has(g.id);
+        return `
+          <div class="group-card">
+            <div class="group-icon">${groupIcon(g.category)}</div>
+            <div class="group-info">
+              <h3>${g.name}</h3>
+              <p>${g.description || ""}</p>
+              <div class="group-meta">${g.memberCount || 0} members · ${g.category}</div>
+            </div>
+            <button class="join-btn ${isJoined ? 'joined' : ''}" data-id="${g.id}">
+              ${isJoined ? 'Joined' : 'Join'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    groupsList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.join-btn');
+      if (!btn) return;
+
+      if (!currentUser) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const groupId = btn.dataset.id;
+      const isJoined = joinedGroupIds.has(groupId);
+      btn.disabled = true;
+
+      try {
+        const groupRef = doc(db, "groups", groupId);
+        const userGroupRef = doc(db, "users", currentUser.uid, "joinedGroups", groupId);
+
+        if (isJoined) {
+          await deleteDoc(userGroupRef);
+          await updateDoc(groupRef, { memberCount: increment(-1) });
+          joinedGroupIds.delete(groupId);
+        } else {
+          await setDoc(userGroupRef, { joinedAt: new Date() });
+          await updateDoc(groupRef, { memberCount: increment(1) });
+          joinedGroupIds.add(groupId);
+        }
+
+        const group = allGroups.find(g => g.id === groupId);
+        if (group) group.memberCount = (group.memberCount || 0) + (isJoined ? -1 : 1);
+
+        renderGroups();
+      } catch (err) {
+        console.error("Error joining/leaving group:", err);
+        alert("Could not update group membership.");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    chips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      chips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCategory = chip.dataset.category;
+      renderGroups();
+    });
+
+    searchInput.addEventListener('input', renderGroups);
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (user) await loadJoinedGroups();
+      await loadGroups();
+    });
+  </script>
+
+</body>
+</html>
