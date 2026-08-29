@@ -22,68 +22,162 @@
       margin: 0;
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding-bottom: 70px;
+      padding-bottom: 80px;
     }
     .topbar {
       background: linear-gradient(135deg, #007bff, #00d2ff);
       color: white;
-      padding: 18px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 16px 20px;
+      font-size: 20px;
+      font-weight: 800;
       position: sticky;
       top: 0;
       z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .topbar .logo { font-size: 20px; font-weight: 800; }
-    .topbar .avatar {
+    .user-avatar-small {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.25);
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 14px;
-    }
-    .greeting { padding: 20px; }
-    .greeting h2 { margin: 0 0 4px; font-size: 20px; }
-    .greeting p { margin: 0; color: var(--muted-text); font-size: 14px; }
-    .chips {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 0 20px 16px;
-    }
-    .chip {
+      text-decoration: none;
       flex-shrink: 0;
-      background: white;
-      border: 1px solid #ddd;
+    }
+    .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+    .welcome-text { font-size: 20px; font-weight: 800; margin: 0 0 4px 0; }
+    .sub-text { color: var(--muted-text); font-size: 13px; margin: 0 0 16px 0; }
+
+    .categories-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .categories-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      background: #e4e6eb;
+      color: var(--text-color);
+      border: none;
       padding: 8px 16px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
-      color: var(--text-color);
       white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
     }
-    .chip.active {
+    .chip.active { background: var(--primary-color); color: white; }
+
+    .create-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .create-card textarea {
+      width: 100%;
+      border: 1px solid #e4e6eb;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+    }
+    .media-preview-box {
+      margin-top: 10px;
+      display: none;
+    }
+    .media-preview-box img, .media-preview-box video {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 10px;
+      display: block;
+    }
+    .media-preview-box .cancel-media {
+      display: inline-block;
+      margin-top: 6px;
+      color: #b00020;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .media-inputs { display: flex; gap: 8px; }
+    .media-btn {
+      background: #f0f2f5;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-submit {
       background: var(--primary-color);
       color: white;
-      border-color: var(--primary-color);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
     }
-    .feed {
-      padding: 0 20px;
+    .btn-submit:disabled { background: #a0c4e8; }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .post-author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
     }
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted-text);
+    .post-author-name { font-weight: 700; font-size: 14px; }
+    .post-time { font-size: 11px; color: var(--muted-text); }
+    .post-content { font-size: 14px; margin-bottom: 10px; line-height: 1.4; }
+    .post-media {
+      width: 100%;
+      border-radius: 12px;
+      max-height: 350px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      display: block;
     }
-    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted-text); }
+    .empty-state .icon { font-size: 44px; margin-bottom: 10px; }
+
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -111,46 +205,66 @@
 <body>
 
 <!-- =====================================================
-     PART 2 OF 6 — TOP BAR AND GREETING
+     PART 2 OF 6 — TOP BAR
 ===================================================== -->
 
   <div class="topbar">
-    <div class="logo">GenWave</div>
-    <div class="avatar" id="user-initial" onclick="handleLogout()" style="cursor:pointer;">?</div>
-  </div>
-
-  <div class="greeting">
-    <h2 id="greeting-text">Welcome back 👋</h2>
-    <p>Here's what's happening in your communities</p>
+    <span>GenWave</span>
+    <a href="profile.html" class="user-avatar-small" id="user-initial">U</a>
   </div>
 
 <!-- =====================================================
-     PART 3 OF 6 — CATEGORY CHIPS
+     PART 3 OF 6 — WELCOME + CATEGORY TABS
 ===================================================== -->
 
-  <div class="chips">
-    <div class="chip active">For You</div>
-    <div class="chip">Music</div>
-    <div class="chip">Sports</div>
-    <div class="chip">Tech</div>
-    <div class="chip">Faith</div>
-    <div class="chip">Cooking</div>
-  </div>
+  <div class="container">
+    <h2 class="welcome-text" id="welcome-header">Welcome back 👋</h2>
+    <p class="sub-text">Here's what's happening in your communities</p>
+
+    <div class="categories-scroll" id="categories">
+      <button class="chip active" data-category="For You">For You</button>
+      <button class="chip" data-category="Music">Music</button>
+      <button class="chip" data-category="Sports">Sports</button>
+      <button class="chip" data-category="Tech">Tech</button>
+      <button class="chip" data-category="Faith">Faith</button>
+      <button class="chip" data-category="Cooking">Cooking</button>
+    </div>
 
 <!-- =====================================================
-     PART 4 OF 6 — FEED CONTAINER (EMPTY STATE FOR NOW)
+     PART 4 OF 6 — CREATE POST CARD
 ===================================================== -->
 
-  <div class="feed" id="feed">
-    <div class="empty-state">
-      <div class="icon">🌊</div>
-      <p><strong>Your feed is just getting started.</strong><br>Join a group or add interests to see posts here.</p>
+    <div class="create-card">
+      <textarea id="post-input" rows="3" placeholder="Share a picture, video, or status update..."></textarea>
+
+      <div class="media-preview-box" id="media-preview-box"></div>
+
+      <div class="post-actions">
+        <div class="media-inputs">
+          <label class="media-btn">
+            📷 Photo
+            <input type="file" id="image-upload" accept="image/*" style="display:none;">
+          </label>
+          <label class="media-btn">
+            🎥 Video
+            <input type="file" id="video-upload" accept="video/*" style="display:none;">
+          </label>
+        </div>
+        <button class="btn-submit" id="btn-publish">Post</button>
+      </div>
+    </div>
+
+<!-- =====================================================
+     PART 5 OF 6 — FEED + BOTTOM NAV
+===================================================== -->
+
+    <div id="posts-feed">
+      <div class="empty-state">
+        <div class="icon">🌊</div>
+        <p>Loading your feed...</p>
+      </div>
     </div>
   </div>
-
-<!-- =====================================================
-     PART 5 OF 6 — BOTTOM NAVIGATION
-===================================================== -->
 
   <div class="bottom-nav">
     <a href="home.html" class="nav-item active">
@@ -172,13 +286,14 @@
   </div>
 
 <!-- =====================================================
-     PART 6 OF 6 — FIREBASE AUTH + PROFILE LOADING
+     PART 6 OF 6 — FIREBASE LOGIC
 ===================================================== -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -192,31 +307,174 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    window.handleLogout = function() {
-      if (confirm("Log out of GenWave?")) {
-        signOut(auth).then(() => {
-          window.location.href = "login.html";
+    let currentUser = null;
+    let selectedCategory = "For You";
+    let selectedFile = null;
+    let selectedFileType = null;
+    let allPosts = [];
+
+    const imageUpload = document.getElementById('image-upload');
+    const videoUpload = document.getElementById('video-upload');
+    const mediaPreviewBox = document.getElementById('media-preview-box');
+    const publishBtn = document.getElementById('btn-publish');
+    const postInput = document.getElementById('post-input');
+    const feed = document.getElementById('posts-feed');
+    const categories = document.getElementById('categories');
+
+    function handleFileSelect(file, type) {
+      selectedFile = file;
+      selectedFileType = type;
+
+      const url = URL.createObjectURL(file);
+      mediaPreviewBox.style.display = 'block';
+      mediaPreviewBox.innerHTML = `
+        ${type === 'video' ? `<video src="${url}" muted controls></video>` : `<img src="${url}">`}
+        <span class="cancel-media" id="cancel-media">Remove</span>
+      `;
+      document.getElementById('cancel-media').addEventListener('click', () => {
+        selectedFile = null;
+        selectedFileType = null;
+        mediaPreviewBox.style.display = 'none';
+        mediaPreviewBox.innerHTML = '';
+        imageUpload.value = '';
+        videoUpload.value = '';
+      });
+    }
+
+    imageUpload.addEventListener('change', () => {
+      if (imageUpload.files[0]) handleFileSelect(imageUpload.files[0], 'image');
+    });
+    videoUpload.addEventListener('change', () => {
+      if (videoUpload.files[0]) handleFileSelect(videoUpload.files[0], 'video');
+    });
+
+    categories.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      selectedCategory = chip.dataset.category;
+      categories.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderFeed();
+    });
+
+    publishBtn.addEventListener('click', async () => {
+      const text = postInput.value.trim();
+      if (!text && !selectedFile) return;
+
+      publishBtn.disabled = true;
+      publishBtn.textContent = "Posting...";
+
+      try {
+        let authorName = currentUser.displayName || "GenWave Member";
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+          authorName = userDoc.data().fullName || authorName;
+        }
+
+        let mediaUrl = null;
+        let mediaType = null;
+
+        if (selectedFile) {
+          mediaType = selectedFileType;
+          const fileRef = ref(storage, `postMedia/${currentUser.uid}/${Date.now()}_${selectedFile.name}`);
+          await uploadBytes(fileRef, selectedFile);
+          mediaUrl = await getDownloadURL(fileRef);
+        }
+
+        await addDoc(collection(db, "posts"), {
+          uid: currentUser.uid,
+          authorName: authorName,
+          content: text,
+          category: selectedCategory === "For You" ? "General" : selectedCategory,
+          mediaUrl: mediaUrl,
+          mediaType: mediaType,
+          createdAt: serverTimestamp()
         });
+
+        postInput.value = "";
+        selectedFile = null;
+        selectedFileType = null;
+        mediaPreviewBox.style.display = 'none';
+        mediaPreviewBox.innerHTML = '';
+        imageUpload.value = '';
+        videoUpload.value = '';
+
+        await loadPosts();
+      } catch (err) {
+        console.error("Error publishing post:", err);
+        alert("Could not publish post. Please try again.");
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.textContent = "Post";
       }
-    };
+    });
+
+    function renderFeed() {
+      const filtered = selectedCategory === "For You"
+        ? allPosts
+        : allPosts.filter(p => p.category === selectedCategory);
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>No posts in ${selectedCategory} yet.</p></div>`;
+        return;
+      }
+
+      feed.innerHTML = filtered.map(post => {
+        const initial = (post.authorName || "G").charAt(0).toUpperCase();
+        let mediaElement = "";
+        if (post.mediaUrl) {
+          mediaElement = post.mediaType === "video"
+            ? `<video src="${post.mediaUrl}" controls class="post-media"></video>`
+            : `<img src="${post.mediaUrl}" class="post-media" alt="Post photo">`;
+        }
+        return `
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-author-avatar">${initial}</div>
+              <div>
+                <div class="post-author-name">${post.authorName}</div>
+                <div class="post-time">${post.category || "General"}</div>
+              </div>
+            </div>
+            ${post.content ? `<div class="post-content">${post.content}</div>` : ""}
+            ${mediaElement}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadPosts() {
+      try {
+        const snapshot = await getDocs(collection(db, "posts"));
+        allPosts = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        renderFeed();
+      } catch (err) {
+        console.error("Error loading posts:", err);
+        feed.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>Your feed is just getting started.<br>Post a status or photo above to begin!</p></div>`;
+      }
+    }
 
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) {
-            const data = snap.data();
-            const firstName = (data.fullName || "there").split(" ")[0];
-            document.getElementById('greeting-text').textContent = `Welcome back, ${firstName} 👋`;
-            document.getElementById('user-initial').textContent = firstName.charAt(0).toUpperCase();
-          }
-        } catch (err) {
-          console.log("Could not load profile:", err);
-        }
-      } else {
-        window.location.href = "signup.html";
+      if (!user) {
+        window.location.href = "login.html";
+        return;
       }
+      currentUser = user;
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const name = userDoc.exists() ? (userDoc.data().fullName || "Member") : (user.displayName || "Member");
+        document.getElementById('welcome-header').textContent = `Welcome back, ${name} 👋`;
+        document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      }
+
+      loadPosts();
     });
   </script>
 
