@@ -116,7 +116,7 @@
 
   <div class="topbar">
     <div class="logo">GenWave</div>
-    <div class="avatar" id="user-initial">?</div>
+    <div class="avatar" id="user-initial" onclick="handleLogout()" style="cursor:pointer;">?</div>
   </div>
 
   <div class="greeting">
@@ -173,7 +173,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -188,7 +188,15 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+window.handleLogout = function() {
+      if (confirm("Log out of GenWave?")) {
+        signOut(auth).then(() => {
+          window.location.href = "login.html";
+        });
+      }
+    };
 
+    onAuthStateChanged(auth, async (user) => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
