@@ -188,7 +188,8 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-window.handleLogout = function() {
+
+    window.handleLogout = function() {
       if (confirm("Log out of GenWave?")) {
         signOut(auth).then(() => {
           window.location.href = "login.html";
@@ -196,7 +197,6 @@ window.handleLogout = function() {
       }
     };
 
-    onAuthStateChanged(auth, async (user) => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
