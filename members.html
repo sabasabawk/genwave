@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- =====================================================
+     PART 1 OF 4 — DOCUMENT SETUP AND STYLES
+===================================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members - GenWave</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --muted-text: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 70px;
+    }
+    .topbar {
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
+      padding: 18px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar .title { font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+    .search-box input {
+      flex: 1;
+      border: none;
+      background: none;
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-box input::placeholder { color: rgba(255,255,255,0.8); }
+
+    .members-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .member-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: var(--text-color);
+    }
+    .member-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .member-info { flex: 1; min-width: 0; }
+    .member-name { font-size: 14px; font-weight: 700; }
+    .member-bio {
+      font-size: 12px;
+      color: var(--muted-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted-text); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted-text);
+      text-decoration: none;
+    }
+    .nav-item.active { color: var(--primary-color); font-weight: 700; }
+    .nav-item .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PART 2 OF 4 — TOP BAR WITH SEARCH
+===================================================== -->
+
+  <div class="topbar">
+    <div class="title">Members</div>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="Search members...">
+    </div>
+  </div>
+
+<!-- =====================================================
+     PART 3 OF 4 — MEMBERS LIST + BOTTOM NAV
+===================================================== -->
+
+  <div class="members-list" id="members-list">
+    <div class="empty-state">
+      <div class="icon">👥</div>
+      <p>Loading members...</p>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <div class="nav-icon">🏠</div>
+      Home
+    </a>
+    <a href="groups.html" class="nav-item">
+      <div class="nav-icon">👥</div>
+      Groups
+    </a>
+    <a href="conversations.html" class="nav-item">
+      <div class="nav-icon">💬</div>
+      Messages
+    </a>
+    <a href="profile.html" class="nav-item">
+      <div class="nav-icon">👤</div>
+      Profile
+    </a>
+  </div>
+
+<!-- =====================================================
+     PART 4 OF 4 — FIREBASE LOGIC
+===================================================== -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let allMembers = [];
+    const membersList = document.getElementById('members-list');
+    const searchInput = document.getElementById('search-input');
+
+    function renderMembers() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = allMembers.filter(m => !term || (m.fullName || "").toLowerCase().includes(term));
+
+      if (filtered.length === 0) {
+        membersList.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>No members found.</p></div>`;
+        return;
+      }
+
+      membersList.innerHTML = filtered.map(m => `
+        <a href="user-profile.html?uid=${encodeURIComponent(m.id)}" class="member-card">
+          <div class="member-avatar">${(m.fullName || "?").charAt(0).toUpperCase()}</div>
+          <div class="member-info">
+            <div class="member-name">${m.fullName || "GenWave User"}</div>
+            <div class="member-bio">${m.bio || ""}</div>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    searchInput.addEventListener('input', renderMembers);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        allMembers = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(m => m.id !== currentUser.uid);
+
+        renderMembers();
+      } catch (err) {
+        console.error("Error loading members:", err);
+        membersList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load members.</p></div>`;
+      }
+    });
+  </script>
+
+</body>
+</html>
