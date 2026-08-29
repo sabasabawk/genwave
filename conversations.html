@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- =====================================================
-     PART 1 OF 4 — DOCUMENT SETUP AND STYLES
-===================================================== -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messages - GenWave</title>
@@ -99,15 +96,7 @@
 </head>
 <body>
 
-<!-- =====================================================
-     PART 2 OF 4 — TOP BAR
-===================================================== -->
-
   <div class="topbar">Messages</div>
-
-<!-- =====================================================
-     PART 3 OF 4 — CONVERSATION LIST + BOTTOM NAV
-===================================================== -->
 
   <div class="convo-list" id="convo-list">
     <div class="empty-state">
@@ -135,14 +124,10 @@
     </a>
   </div>
 
-<!-- =====================================================
-     PART 4 OF 4 — FIREBASE LOGIC
-===================================================== -->
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -157,7 +142,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser = null;
     const convoList = document.getElementById('convo-list');
 
     function formatTime(timestamp) {
@@ -174,19 +158,15 @@
       return `${diffDays}d`;
     }
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
-      currentUser = user;
+    async function loadConversations(user) {
+      try {
+        const convosQuery = query(
+          collection(db, "conversations"),
+          where("participants", "array-contains", user.uid)
+        );
 
-      const convosQuery = query(
-        collection(db, "conversations"),
-        where("participants", "array-contains", user.uid)
-      );
+        const snapshot = await getDocs(convosQuery);
 
-      onSnapshot(convosQuery, async (snapshot) => {
         if (snapshot.empty) {
           convoList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>No conversations yet.<br>Visit a member's profile to say hello.</p></div>`;
           return;
@@ -200,16 +180,18 @@
 
         const cards = await Promise.all(sortedDocs.map(async (docSnap) => {
           const convo = docSnap.data();
-          const otherUid = convo.participants.find(uid => uid !== currentUser.uid);
+          const otherUid = convo.participants ? convo.participants.find(uid => uid !== user.uid) : null;
           let otherName = "GenWave User";
 
-          try {
-            const otherUserSnap = await getDoc(doc(db, "users", otherUid));
-            if (otherUserSnap.exists()) {
-              otherName = otherUserSnap.data().fullName || otherName;
+          if (otherUid) {
+            try {
+              const otherUserSnap = await getDoc(doc(db, "users", otherUid));
+              if (otherUserSnap.exists()) {
+                otherName = otherUserSnap.data().fullName || otherName;
+              }
+            } catch (err) {
+              console.log("Could not load user:", err);
             }
-          } catch (err) {
-            console.log("Could not load user for conversation:", err);
           }
 
           const initial = otherName.charAt(0).toUpperCase();
@@ -229,10 +211,18 @@
         }));
 
         convoList.innerHTML = cards.join('');
-      }, (err) => {
+      } catch (err) {
         console.error("Error loading conversations:", err);
-        convoList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
-      });
+        convoList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>No conversations yet.<br>Visit a member's profile to say hello.</p></div>`;
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      loadConversations(user);
     });
   </script>
 
