@@ -226,7 +226,7 @@
         convoList.innerHTML = cards.join('');
       }, (err) => {
         console.error("Error loading conversations:", err);
-        convoList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load conversations.</p></div>`;
+        convoList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
       });
     });
   </script>
