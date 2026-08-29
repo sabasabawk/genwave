@@ -181,10 +181,9 @@
       }
       currentUser = user;
 
-      const convosQuery = query(
+      const const convosQuery = query(
         collection(db, "conversations"),
-        where("participants", "array-contains", user.uid),
-        orderBy("lastMessageAt", "desc")
+        where("participants", "array-contains", user.uid)
       );
 
       onSnapshot(convosQuery, async (snapshot) => {
@@ -193,7 +192,13 @@
           return;
         }
 
-        const cards = await Promise.all(snapshot.docs.map(async (docSnap) => {
+        const sortedDocs = [...snapshot.docs].sort((a, b) => {
+          const aTime = a.data().lastMessageAt?.toMillis?.() || 0;
+          const bTime = b.data().lastMessageAt?.toMillis?.() || 0;
+          return bTime - aTime;
+        });
+
+        const cards = await Promise.all(sortedDocs.map(async (docSnap) => {
           const convo = docSnap.data();
           const otherUid = convo.participants.find(uid => uid !== currentUser.uid);
           let otherName = "GenWave User";
