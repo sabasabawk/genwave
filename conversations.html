@@ -35,7 +35,7 @@
       align-items: center;
     }
     .topbar-btn {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.25);
       color: white;
       border: none;
       padding: 6px 14px;
@@ -124,7 +124,7 @@
 
   <div class="topbar">
     <span>Messages</span>
-    <a href="members.html" class="topbar-btn">🔍 Find Members</a>
+    <a href="members.html" class="topbar-btn">🔍 Members</a>
   </div>
 
   <div class="convo-list" id="convo-list">
@@ -200,7 +200,7 @@
           convoList.innerHTML = `
             <div class="empty-state">
               <div class="icon">💬</div>
-              <p>No conversations yet.<br>Start a conversation with other members!</p>
+              <p>No conversations yet.<br>Visit a member's profile to say hello.</p>
               <a href="members.html" class="btn-primary">Find Members</a>
             </div>
           `;
