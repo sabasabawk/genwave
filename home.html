@@ -386,7 +386,7 @@
             ${mediaElement}
             <div class="post-actions">
               <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${post.id}">❤️ ${likes.length}</button>
-              <button class="comment-btn" data-id="${post.id}">💬 ${commentsCount > 0 ? commentsCount : 'Comment'}</button>
+              <a href="comments.html?postId=${post.id}" class="comment-btn" style="text-align:center; text-decoration:none; display:block;">💬 ${commentsCount > 0 ? commentsCount : 'Comment'}</a>
               <button class="share-btn" data-id="${post.id}">🔗 Share</button>
             </div>
           </div>
