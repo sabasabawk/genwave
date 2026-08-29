@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- =====================================================
+     PART 1 OF 4 — DOCUMENT SETUP AND STYLES
+===================================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status - GenWave</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .status-viewer {
+      position: relative;
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-bars {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+    }
+    .progress-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: white;
+    }
+    .progress-fill.done { width: 100%; }
+
+    .status-header {
+      position: absolute;
+      top: 24px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+      color: white;
+    }
+    .status-header .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .status-header .name { font-size: 14px; font-weight: 700; }
+    .status-header .time { font-size: 11px; opacity: 0.8; }
+    .close-btn {
+      margin-left: auto;
+      color: white;
+      background: none;
+      border: none;
+      font-size: 24px;
+    }
+
+    .status-media { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    .tap-zone-left, .tap-zone-right {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 33%;
+      z-index: 5;
+    }
+    .tap-zone-left { left: 0; }
+    .tap-zone-right { right: 0; }
+
+    .loading-msg { color: white; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PART 2 OF 4 — VIEWER LAYOUT
+===================================================== -->
+
+  <div class="status-viewer">
+    <div class="progress-bars" id="progress-bars"></div>
+    <div class="status-header">
+      <div class="avatar" id="status-avatar">?</div>
+      <div>
+        <div class="name" id="status-name">Loading...</div>
+        <div class="time" id="status-time"></div>
+      </div>
+      <button class="close-btn" id="close-btn">&times;</button>
+    </div>
+
+    <div id="media-container">
+      <div class="loading-msg">Loading status...</div>
+    </div>
+
+    <div class="tap-zone-left" id="tap-left"></div>
+    <div class="tap-zone-right" id="tap-right"></div>
+  </div>
+
+<!-- =====================================================
+     PART 3 OF 4 — (reserved for future controls) 
+===================================================== -->
+
+<!-- =====================================================
+     PART 4 OF 4 — FIREBASE LOGIC
+===================================================== -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUid = urlParams.get('uid');
+
+    let statuses = [];
+    let currentIndex = 0;
+    let timer = null;
+    const DURATION = 5000;
+
+    const mediaContainer = document.getElementById('media-container');
+    const progressBars = document.getElementById('progress-bars');
+    const statusName = document.getElementById('status-name');
+    const statusAvatar = document.getElementById('status-avatar');
+    const statusTime = document.getElementById('status-time');
+    const closeBtn = document.getElementById('close-btn');
+    const tapLeft = document.getElementById('tap-left');
+    const tapRight = document.getElementById('tap-right');
+
+    function formatTime(timestamp) {
+      if (!timestamp) return "";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const diffMins = Math.floor((Date.now() - date.getTime()) / 60000);
+      if (diffMins < 60) return `${diffMins}m ago`;
+      return `${Math.floor(diffMins / 60)}h ago`;
+    }
+
+    function buildProgressBars() {
+      progressBars.innerHTML = statuses.map(() => `
+        <div class="progress-track"><div class="progress-fill"></div></div>
+      `).join('');
+    }
+
+    function showStatus(index) {
+      clearTimeout(timer);
+      if (index < 0) index = 0;
+      if (index >= statuses.length) {
+        window.location.href = "home.html";
+        return;
+      }
+      currentIndex = index;
+      const item = statuses[currentIndex];
+
+      const bars = progressBars.querySelectorAll('.progress-fill');
+      bars.forEach((bar, i) => {
+        bar.classList.remove('done');
+        bar.style.transition = 'none';
+        bar.style.width = i < currentIndex ? '100%' : '0%';
+      });
+
+      mediaContainer.innerHTML = item.mediaType === 'video'
+        ? `<video class="status-media" src="${item.mediaUrl}" autoplay playsinline></video>`
+        : `<img class="status-media" src="${item.mediaUrl}">`;
+
+      statusTime.textContent = formatTime(item.timestamp);
+
+      requestAnimationFrame(() => {
+        const activeBar = bars[currentIndex];
+        activeBar.style.transition = `width ${DURATION}ms linear`;
+        activeBar.style.width = '100%';
+      });
+
+      timer = setTimeout(() => showStatus(currentIndex + 1), DURATION);
+    }
+
+    tapLeft.addEventListener('click', () => showStatus(currentIndex - 1));
+    tapRight.addEventListener('click', () => showStatus(currentIndex + 1));
+    closeBtn.addEventListener('click', () => window.location.href = "home.html");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      if (!targetUid) {
+        window.location.href = "home.html";
+        return;
+      }
+
+      try {
+        const userSnap = await getDoc(doc(db, "users", targetUid));
+        const name = userSnap.exists() ? (userSnap.data().fullName || "Member") : "Member";
+        statusName.textContent = name;
+        statusAvatar.textContent = name.charAt(0).toUpperCase();
+
+        const statusQuery = query(collection(db, "statuses"), where("userId", "==", targetUid));
+        const snap = await getDocs(statusQuery);
+        const now = Date.now();
+        const dayMs = 24 * 60 * 60 * 1000;
+
+        statuses = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(s => now - (s.timestamp?.toMillis?.() || 0) < dayMs)
+          .sort((a, b) => (a.timestamp?.toMillis?.() || 0) - (b.timestamp?.toMillis?.() || 0));
+
+        if (statuses.length === 0) {
+          mediaContainer.innerHTML = `<div class="loading-msg">This status has expired.</div>`;
+          return;
+        }
+
+        buildProgressBars();
+        showStatus(0);
+      } catch (err) {
+        console.error("Error loading status:", err);
+        mediaContainer.innerHTML = `<div class="loading-msg">Could not load status.</div>`;
+      }
+    });
+  </script>
+
+</body>
+</html>
