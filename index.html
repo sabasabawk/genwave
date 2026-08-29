@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- =====================================================
+     PART 1 OF 5 — DOCUMENT SETUP AND STYLES
+===================================================== -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GenWave - Connect Through Passions</title>
@@ -35,6 +38,17 @@
       font-size: 22px;
       font-weight: 800;
       color: var(--primary-color);
+    }
+    nav .nav-links {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    nav .login-link {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
     }
     nav a.nav-btn {
       background: var(--primary-color);
@@ -149,10 +163,21 @@
 </head>
 <body>
 
+<!-- =====================================================
+     PART 2 OF 5 — TOP NAVIGATION BAR
+===================================================== -->
+
   <nav>
     <div class="logo">GenWave</div>
-    <a href="signup.html" class="nav-btn">Get Started</a>
+    <div class="nav-links">
+      <a href="login.html" class="login-link">Log In</a>
+      <a href="signup.html" class="nav-btn">Get Started</a>
+    </div>
   </nav>
+
+<!-- =====================================================
+     PART 3 OF 5 — HERO HEADER SECTION
+===================================================== -->
 
   <header>
     <h1>Connect Through Passions</h1>
@@ -160,6 +185,10 @@
     <a href="signup.html" class="cta-btn">Join GenWave</a>
     <svg class="wave" viewBox="0 0 1440 100" preserveAspectRatio="none"><path fill="#f4f7f6" d="M0,50 C360,100 1080,0 1440,50 L1440,100 L0,100 Z"></path></svg>
   </header>
+
+<!-- =====================================================
+     PART 4 OF 5 — FEATURES AND BOTTOM CALL TO ACTION
+===================================================== -->
 
   <div class="container">
     <div class="features">
@@ -186,6 +215,10 @@
       <a href="signup.html" class="cta-btn">Create Your Account</a>
     </div>
   </div>
+
+<!-- =====================================================
+     PART 5 OF 5 — FOOTER
+===================================================== -->
 
   <footer>
     &copy; GenWave App. Built with Firebase & GitHub Pages.
