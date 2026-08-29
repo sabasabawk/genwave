@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- =====================================================
+     PART 1 OF 6 — DOCUMENT SETUP AND STYLES
+===================================================== -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home - GenWave</title>
@@ -21,8 +24,6 @@
       color: var(--text-color);
       padding-bottom: 70px;
     }
-
-    /* Top bar */
     .topbar {
       background: linear-gradient(135deg, #007bff, #00d2ff);
       color: white;
@@ -46,21 +47,9 @@
       font-weight: 700;
       font-size: 14px;
     }
-
-    .greeting {
-      padding: 20px;
-    }
-    .greeting h2 {
-      margin: 0 0 4px;
-      font-size: 20px;
-    }
-    .greeting p {
-      margin: 0;
-      color: var(--muted-text);
-      font-size: 14px;
-    }
-
-    /* Category chips */
+    .greeting { padding: 20px; }
+    .greeting h2 { margin: 0 0 4px; font-size: 20px; }
+    .greeting p { margin: 0; color: var(--muted-text); font-size: 14px; }
     .chips {
       display: flex;
       gap: 10px;
@@ -83,83 +72,18 @@
       color: white;
       border-color: var(--primary-color);
     }
-
-    /* Feed */
     .feed {
       padding: 0 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-
-    .post-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px 0;
-    }
-    .post-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #007bff, #00d2ff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 15px;
-    }
-    .post-user { font-weight: 700; font-size: 14px; }
-    .post-meta { font-size: 12px; color: var(--muted-text); }
-
-    .post-body {
-      padding: 10px 16px 16px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .post-tag {
-      display: inline-block;
-      background: #e8f2ff;
-      color: var(--primary-color);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-    }
-
-    .post-actions {
-      display: flex;
-      border-top: 1px solid #f0f0f0;
-    }
-    .post-actions button {
-      flex: 1;
-      background: none;
-      border: none;
-      padding: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted-text);
-      cursor: pointer;
-    }
-    .post-actions button:active { color: var(--primary-color); }
-
-    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 40px 20px;
       color: var(--muted-text);
     }
     .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
-
-    /* Bottom nav */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -186,6 +110,10 @@
 </head>
 <body>
 
+<!-- =====================================================
+     PART 2 OF 6 — TOP BAR AND GREETING
+===================================================== -->
+
   <div class="topbar">
     <div class="logo">GenWave</div>
     <div class="avatar" id="user-initial">?</div>
@@ -196,6 +124,10 @@
     <p>Here's what's happening in your communities</p>
   </div>
 
+<!-- =====================================================
+     PART 3 OF 6 — CATEGORY CHIPS
+===================================================== -->
+
   <div class="chips">
     <div class="chip active">For You</div>
     <div class="chip">Music</div>
@@ -205,12 +137,20 @@
     <div class="chip">Cooking</div>
   </div>
 
+<!-- =====================================================
+     PART 4 OF 6 — FEED CONTAINER (EMPTY STATE FOR NOW)
+===================================================== -->
+
   <div class="feed" id="feed">
     <div class="empty-state">
       <div class="icon">🌊</div>
       <p><strong>Your feed is just getting started.</strong><br>Join a group or add interests to see posts here.</p>
     </div>
   </div>
+
+<!-- =====================================================
+     PART 5 OF 6 — BOTTOM NAVIGATION
+===================================================== -->
 
   <div class="bottom-nav">
     <a href="home.html" class="nav-item active">
@@ -226,6 +166,10 @@
       Profile
     </a>
   </div>
+
+<!-- =====================================================
+     PART 6 OF 6 — FIREBASE AUTH + PROFILE LOADING
+===================================================== -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -259,7 +203,6 @@
           console.log("Could not load profile:", err);
         }
       } else {
-        // Not logged in — send to signup
         window.location.href = "signup.html";
       }
     });
