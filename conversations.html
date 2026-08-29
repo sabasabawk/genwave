@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- =====================================================
+     PART 1 OF 4 — DOCUMENT SETUP AND STYLES
+===================================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - GenWave</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --primary-hover: #0056b3;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --muted-text: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 70px;
+    }
+    .topbar {
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
+      padding: 18px 20px;
+      font-size: 20px;
+      font-weight: 800;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .convo-list { padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .convo-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: var(--text-color);
+    }
+    .convo-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .convo-info { flex: 1; min-width: 0; }
+    .convo-name { font-size: 14px; font-weight: 700; }
+    .convo-preview {
+      font-size: 12px;
+      color: var(--muted-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .convo-time { font-size: 11px; color: var(--muted-text); flex-shrink: 0; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted-text); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--muted-text);
+      text-decoration: none;
+    }
+    .nav-item.active { color: var(--primary-color); font-weight: 700; }
+    .nav-item .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PART 2 OF 4 — TOP BAR
+===================================================== -->
+
+  <div class="topbar">Messages</div>
+
+<!-- =====================================================
+     PART 3 OF 4 — CONVERSATION LIST
+===================================================== -->
+
+  <div class="convo-list" id="convo-list">
+    <div class="empty-state">
+      <div class="icon">💬</div>
+      <p>Loading conversations...</p>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <div class="nav-icon">🏠</div>
+      Home
+    </a>
+    <a href="groups.html" class="nav-item">
+      <div class="nav-icon">👥</div>
+      Groups
+    </a>
+    <a href="conversations.html" class="nav-item active">
+      <div class="nav-icon">💬</div>
+      Messages
+    </a>
+    <a href="profile.html" class="nav-item">
+      <div class="nav-icon">👤</div>
+      Profile
+    </a>
+  </div>
+
+<!-- =====================================================
+     PART 4 OF 4 — FIREBASE LOGIC
+===================================================== -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    const convoList = document.getElementById('convo-list');
+
+    function formatTime(timestamp) {
+      if (!timestamp) return "";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return "now";
+      if (diffMins < 60) return `${diffMins}m`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d`;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      const convosQuery = query(
+        collection(db, "conversations"),
+        where("participants", "array-contains", user.uid),
+        orderBy("lastMessageAt", "desc")
+      );
+
+      onSnapshot(convosQuery, async (snapshot) => {
+        if (snapshot.empty) {
+          convoList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>No conversations yet.<br>Visit a member's profile to say hello.</p></div>`;
+          return;
+        }
+
+        const cards = await Promise.all(snapshot.docs.map(async (docSnap) => {
+          const convo = docSnap.data();
+          const otherUid = convo.participants.find(uid => uid !== currentUser.uid);
+          let otherName = "GenWave User";
+
+          try {
+            const otherUserSnap = await getDoc(doc(db, "users", otherUid));
+            if (otherUserSnap.exists()) {
+              otherName = otherUserSnap.data().fullName || otherName;
+            }
+          } catch (err) {
+            console.log("Could not load user for conversation:", err);
+          }
+
+          const initial = otherName.charAt(0).toUpperCase();
+          const preview = convo.lastMessage || "Say hello 👋";
+          const time = formatTime(convo.lastMessageAt);
+
+          return `
+            <a href="chat.html?uid=${encodeURIComponent(otherUid)}" class="convo-card">
+              <div class="convo-avatar">${initial}</div>
+              <div class="convo-info">
+                <div class="convo-name">${otherName}</div>
+                <div class="convo-preview">${preview}</div>
+              </div>
+              <div class="convo-time">${time}</div>
+            </a>
+          `;
+        }));
+
+        convoList.innerHTML = cards.join('');
+      }, (err) => {
+        console.error("Error loading conversations:", err);
+        convoList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load conversations.</p></div>`;
+      });
+    });
+  </script>
+
+</body>
+</html>
