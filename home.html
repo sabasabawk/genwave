@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <!-- =====================================================
-     PART 1 OF 6 — DOCUMENT SETUP AND STYLES
+     PART 1 OF 7 — DOCUMENT SETUP AND STYLES
 ===================================================== -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,6 @@
   <style>
     :root {
       --primary-color: #007bff;
-      --primary-hover: #0056b3;
       --bg-color: #f4f7f6;
       --card-bg: #ffffff;
       --text-color: #222222;
@@ -54,6 +53,68 @@
     .welcome-text { font-size: 20px; font-weight: 800; margin: 0 0 4px 0; }
     .sub-text { color: var(--muted-text); font-size: 13px; margin: 0 0 16px 0; }
 
+    /* Status strip */
+    .status-strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 18px;
+      scrollbar-width: none;
+    }
+    .status-strip::-webkit-scrollbar { display: none; }
+    .status-circle-btn {
+      flex-shrink: 0;
+      width: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      color: var(--text-color);
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .status-avatar-outer {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .status-avatar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid white;
+      background: #e4e6eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--primary-color);
+    }
+    .status-circle-btn.add-status .status-avatar-outer {
+      background: #e4e6eb;
+    }
+    .status-circle-btn.add-status .status-avatar-inner {
+      color: var(--primary-color);
+      font-size: 24px;
+    }
+    .status-name {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 64px;
+    }
+
     .categories-scroll {
       display: flex;
       gap: 8px;
@@ -76,72 +137,6 @@
       flex-shrink: 0;
     }
     .chip.active { background: var(--primary-color); color: white; }
-
-    .create-card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-    .create-card textarea {
-      width: 100%;
-      border: 1px solid #e4e6eb;
-      border-radius: 12px;
-      padding: 12px;
-      font-family: inherit;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-    }
-    .media-preview-box {
-      margin-top: 10px;
-      display: none;
-    }
-    .media-preview-box img, .media-preview-box video {
-      max-width: 100%;
-      max-height: 180px;
-      border-radius: 10px;
-      display: block;
-    }
-    .media-preview-box .cancel-media {
-      display: inline-block;
-      margin-top: 6px;
-      color: #b00020;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .post-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .media-inputs { display: flex; gap: 8px; }
-    .media-btn {
-      background: #f0f2f5;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn-submit {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .btn-submit:disabled { background: #a0c4e8; }
 
     .post-card {
       background: var(--card-bg);
@@ -175,8 +170,45 @@
       display: block;
     }
 
+    .post-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+    .post-actions button {
+      background: #f0f2f5;
+      border: none;
+      padding: 9px 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted-text);
+    }
+    .post-actions button.liked { background: #ffe5ea; color: #c2183b; }
+
     .empty-state { text-align: center; padding: 40px 20px; color: var(--muted-text); }
     .empty-state .icon { font-size: 44px; margin-bottom: 10px; }
+
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 84px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      text-decoration: none;
+      z-index: 20;
+    }
 
     .bottom-nav {
       position: fixed;
@@ -205,7 +237,7 @@
 <body>
 
 <!-- =====================================================
-     PART 2 OF 6 — TOP BAR
+     PART 2 OF 7 — TOP BAR
 ===================================================== -->
 
   <div class="topbar">
@@ -214,12 +246,29 @@
   </div>
 
 <!-- =====================================================
-     PART 3 OF 6 — WELCOME + CATEGORY TABS
+     PART 3 OF 7 — WELCOME
 ===================================================== -->
 
   <div class="container">
     <h2 class="welcome-text" id="welcome-header">Welcome back 👋</h2>
     <p class="sub-text">Here's what's happening in your communities</p>
+
+<!-- =====================================================
+     PART 4 OF 7 — STATUS STRIP
+===================================================== -->
+
+    <div class="status-strip" id="status-strip">
+      <a href="create-status.html" class="status-circle-btn add-status">
+        <div class="status-avatar-outer">
+          <div class="status-avatar-inner">+</div>
+        </div>
+        <div class="status-name">Add Status</div>
+      </a>
+    </div>
+
+<!-- =====================================================
+     PART 5 OF 7 — CATEGORY TABS
+===================================================== -->
 
     <div class="categories-scroll" id="categories">
       <button class="chip active" data-category="For You">For You</button>
@@ -231,31 +280,7 @@
     </div>
 
 <!-- =====================================================
-     PART 4 OF 6 — CREATE POST CARD
-===================================================== -->
-
-    <div class="create-card">
-      <textarea id="post-input" rows="3" placeholder="Share a picture, video, or status update..."></textarea>
-
-      <div class="media-preview-box" id="media-preview-box"></div>
-
-      <div class="post-actions">
-        <div class="media-inputs">
-          <label class="media-btn">
-            📷 Photo
-            <input type="file" id="image-upload" accept="image/*" style="display:none;">
-          </label>
-          <label class="media-btn">
-            🎥 Video
-            <input type="file" id="video-upload" accept="video/*" style="display:none;">
-          </label>
-        </div>
-        <button class="btn-submit" id="btn-publish">Post</button>
-      </div>
-    </div>
-
-<!-- =====================================================
-     PART 5 OF 6 — FEED + BOTTOM NAV
+     PART 6 OF 7 — FEED
 ===================================================== -->
 
     <div id="posts-feed">
@@ -265,6 +290,8 @@
       </div>
     </div>
   </div>
+
+  <a href="create-post.html" class="fab">+</a>
 
   <div class="bottom-nav">
     <a href="home.html" class="nav-item active">
@@ -286,13 +313,13 @@
   </div>
 
 <!-- =====================================================
-     PART 6 OF 6 — FIREBASE + CLOUDINARY LOGIC
+     PART 7 OF 7 — FIREBASE LOGIC
 ===================================================== -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -307,64 +334,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    async function uploadToCloudinary(file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'genwave_unsigned');
-
-      const response = await fetch('https://api.cloudinary.com/v1_1/glq2nymz/auto/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Cloudinary upload failed');
-      }
-
-      const data = await response.json();
-      return data.secure_url;
-    }
-
     let currentUser = null;
     let selectedCategory = "For You";
-    let selectedFile = null;
-    let selectedFileType = null;
     let allPosts = [];
 
-    const imageUpload = document.getElementById('image-upload');
-    const videoUpload = document.getElementById('video-upload');
-    const mediaPreviewBox = document.getElementById('media-preview-box');
-    const publishBtn = document.getElementById('btn-publish');
-    const postInput = document.getElementById('post-input');
     const feed = document.getElementById('posts-feed');
     const categories = document.getElementById('categories');
-
-    function handleFileSelect(file, type) {
-      selectedFile = file;
-      selectedFileType = type;
-
-      const url = URL.createObjectURL(file);
-      mediaPreviewBox.style.display = 'block';
-      mediaPreviewBox.innerHTML = `
-        ${type === 'video' ? `<video src="${url}" muted controls></video>` : `<img src="${url}">`}
-        <span class="cancel-media" id="cancel-media">Remove</span>
-      `;
-      document.getElementById('cancel-media').addEventListener('click', () => {
-        selectedFile = null;
-        selectedFileType = null;
-        mediaPreviewBox.style.display = 'none';
-        mediaPreviewBox.innerHTML = '';
-        imageUpload.value = '';
-        videoUpload.value = '';
-      });
-    }
-
-    imageUpload.addEventListener('change', () => {
-      if (imageUpload.files[0]) handleFileSelect(imageUpload.files[0], 'image');
-    });
-    videoUpload.addEventListener('change', () => {
-      if (videoUpload.files[0]) handleFileSelect(videoUpload.files[0], 'video');
-    });
+    const statusStrip = document.getElementById('status-strip');
 
     categories.addEventListener('click', (e) => {
       const chip = e.target.closest('.chip');
@@ -373,56 +349,6 @@
       categories.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       renderFeed();
-    });
-
-    publishBtn.addEventListener('click', async () => {
-      const text = postInput.value.trim();
-      if (!text && !selectedFile) return;
-
-      publishBtn.disabled = true;
-      publishBtn.textContent = "Posting...";
-
-      try {
-        let authorName = currentUser.displayName || "GenWave Member";
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          authorName = userDoc.data().fullName || authorName;
-        }
-
-        let mediaUrl = null;
-        let mediaType = null;
-
-        if (selectedFile) {
-          mediaType = selectedFileType;
-          mediaUrl = await uploadToCloudinary(selectedFile);
-        }
-
-        await addDoc(collection(db, "posts"), {
-          uid: currentUser.uid,
-          authorName: authorName,
-          content: text,
-          category: selectedCategory === "For You" ? "General" : selectedCategory,
-          mediaUrl: mediaUrl,
-          mediaType: mediaType,
-          createdAt: serverTimestamp()
-        });
-
-        postInput.value = "";
-        selectedFile = null;
-        selectedFileType = null;
-        mediaPreviewBox.style.display = 'none';
-        mediaPreviewBox.innerHTML = '';
-        imageUpload.value = '';
-        videoUpload.value = '';
-
-        await loadPosts();
-      } catch (err) {
-        console.error("Error publishing post:", err);
-        alert("Could not publish post. Please try again.");
-      } finally {
-        publishBtn.disabled = false;
-        publishBtn.textContent = "Post";
-      }
     });
 
     function renderFeed() {
@@ -443,8 +369,12 @@
             ? `<video src="${post.mediaUrl}" controls class="post-media"></video>`
             : `<img src="${post.mediaUrl}" class="post-media" alt="Post photo">`;
         }
+        const likes = Array.isArray(post.likes) ? post.likes : [];
+        const isLiked = currentUser && likes.includes(currentUser.uid);
+        const commentsCount = post.commentsCount || 0;
+
         return `
-          <div class="post-card">
+          <div class="post-card" data-id="${post.id}">
             <div class="post-header">
               <div class="post-author-avatar">${initial}</div>
               <div>
@@ -454,9 +384,105 @@
             </div>
             ${post.content ? `<div class="post-content">${post.content}</div>` : ""}
             ${mediaElement}
+            <div class="post-actions">
+              <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${post.id}">❤️ ${likes.length}</button>
+              <button class="comment-btn" data-id="${post.id}">💬 ${commentsCount > 0 ? commentsCount : 'Comment'}</button>
+              <button class="share-btn" data-id="${post.id}">🔗 Share</button>
+            </div>
           </div>
         `;
       }).join('');
+    }
+
+    feed.addEventListener('click', async (e) => {
+      const likeBtn = e.target.closest('.like-btn');
+      const shareBtn = e.target.closest('.share-btn');
+
+      if (likeBtn) {
+        if (!currentUser) { window.location.href = "login.html"; return; }
+        const postId = likeBtn.dataset.id;
+        const post = allPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const likes = Array.isArray(post.likes) ? post.likes : [];
+        const alreadyLiked = likes.includes(currentUser.uid);
+        const updatedLikes = alreadyLiked
+          ? likes.filter(uid => uid !== currentUser.uid)
+          : [...likes, currentUser.uid];
+
+        likeBtn.disabled = true;
+        try {
+          await updateDoc(doc(db, "posts", postId), { likes: updatedLikes });
+          post.likes = updatedLikes;
+          renderFeed();
+        } catch (err) {
+          console.error("Error updating like:", err);
+        } finally {
+          likeBtn.disabled = false;
+        }
+        return;
+      }
+
+      if (shareBtn) {
+        const postId = shareBtn.dataset.id;
+        const shareUrl = `${window.location.origin}${window.location.pathname}?post=${encodeURIComponent(postId)}`;
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: "GenWave", url: shareUrl });
+          } else {
+            await navigator.clipboard.writeText(shareUrl);
+            alert("Link copied!");
+          }
+        } catch (err) {
+          console.log("Share cancelled or failed:", err);
+        }
+      }
+    });
+
+    async function loadStatuses() {
+      try {
+        const snap = await getDocs(collection(db, "statuses"));
+        const now = Date.now();
+        const dayMs = 24 * 60 * 60 * 1000;
+
+        const activeByUser = new Map();
+        snap.docs.forEach(d => {
+          const data = d.data();
+          const time = data.timestamp?.toMillis?.() || 0;
+          if (now - time < dayMs) {
+            activeByUser.set(data.userId, data);
+          }
+        });
+
+        if (activeByUser.size === 0) return;
+
+        const userIds = [...activeByUser.keys()];
+        const nameEntries = await Promise.all(userIds.map(async (uid) => {
+          try {
+            const uSnap = await getDoc(doc(db, "users", uid));
+            return [uid, uSnap.exists() ? (uSnap.data().fullName || "Member") : "Member"];
+          } catch {
+            return [uid, "Member"];
+          }
+        }));
+        const namesMap = new Map(nameEntries);
+
+        const circlesHtml = userIds.map(uid => {
+          const name = namesMap.get(uid) || "Member";
+          return `
+            <a href="view-status.html?uid=${encodeURIComponent(uid)}" class="status-circle-btn">
+              <div class="status-avatar-outer">
+                <div class="status-avatar-inner">${name.charAt(0).toUpperCase()}</div>
+              </div>
+              <div class="status-name">${name}</div>
+            </a>
+          `;
+        }).join('');
+
+        statusStrip.insertAdjacentHTML('beforeend', circlesHtml);
+      } catch (err) {
+        console.error("Error loading statuses:", err);
+      }
     }
 
     async function loadPosts() {
@@ -468,7 +494,7 @@
         renderFeed();
       } catch (err) {
         console.error("Error loading posts:", err);
-        feed.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>Your feed is just getting started.<br>Post a status or photo above to begin!</p></div>`;
+        feed.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>Your feed is just getting started.<br>Tap + to share your first post!</p></div>`;
       }
     }
 
@@ -488,6 +514,7 @@
         console.error("Error loading profile:", err);
       }
 
+      loadStatuses();
       loadPosts();
     });
   </script>
