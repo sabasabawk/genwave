@@ -106,7 +106,7 @@
   <div class="topbar">Messages</div>
 
 <!-- =====================================================
-     PART 3 OF 4 — CONVERSATION LIST
+     PART 3 OF 4 — CONVERSATION LIST + BOTTOM NAV
 ===================================================== -->
 
   <div class="convo-list" id="convo-list">
@@ -142,7 +142,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -181,7 +181,7 @@
       }
       currentUser = user;
 
-      const const convosQuery = query(
+      const convosQuery = query(
         collection(db, "conversations"),
         where("participants", "array-contains", user.uid)
       );
