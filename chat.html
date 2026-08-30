@@ -10,7 +10,6 @@
   <style>
     :root {
       --primary-color: #007bff;
-      --primary-hover: #0056b3;
       --bg-color: #f4f7f6;
       --card-bg: #ffffff;
       --text-color: #222222;
@@ -198,7 +197,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -223,10 +222,7 @@
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('Cloudinary upload failed');
-      }
-
+      if (!response.ok) throw new Error('Cloudinary upload failed');
       const data = await response.json();
       return data.secure_url;
     }
@@ -325,6 +321,19 @@
       if (e.key === 'Enter') sendMessage();
     });
 
+    messagesArea.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('.delete-msg-btn');
+      if (!deleteBtn) return;
+      if (!confirm("Delete this message?")) return;
+
+      try {
+        await deleteDoc(doc(db, "conversations", conversationId, "messages", deleteBtn.dataset.id));
+      } catch (err) {
+        console.error("Error deleting message:", err);
+        alert("Could not delete message.");
+      }
+    });
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "login.html";
@@ -376,7 +385,7 @@
               <div class="msg-bubble">
                 ${msg.text ? `<div>${msg.text}</div>` : ''}
                 ${mediaHtml}
-                <div class="msg-time">${formatTime(msg.timestamp)}</div>
+                <div class="msg-time">${formatTime(msg.timestamp)} ${isMine ? `<span class="delete-msg-btn" data-id="${docSnap.id}" style="cursor:pointer; margin-left:6px;">🗑️</span>` : ''}</div>
               </div>
             </div>
           `;
