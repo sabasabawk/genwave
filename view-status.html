@@ -195,20 +195,30 @@
         bar.style.width = i < currentIndex ? '100%' : '0%';
       });
 
-      mediaContainer.innerHTML = item.mediaType === 'video'
-        ? `<video class="status-media" src="${item.mediaUrl}" autoplay playsinline></video>`
-        : `<img class="status-media" src="${item.mediaUrl}">`;
+      mediaContainer.statusTime.textContent = formatTime(item.timestamp);
 
-      statusTime.textContent = formatTime(item.timestamp);
+      if (item.mediaType === 'video') {
+        mediaContainer.innerHTML = `<video class="status-media" id="status-video" src="${item.mediaUrl}" autoplay playsinline></video>`;
+        const video = document.getElementById('status-video');
 
-      requestAnimationFrame(() => {
-        const activeBar = bars[currentIndex];
-        activeBar.style.transition = `width ${DURATION}ms linear`;
-        activeBar.style.width = '100%';
-      });
-
-      timer = setTimeout(() => showStatus(currentIndex + 1), DURATION);
-    }
+        video.addEventListener('loadedmetadata', () => {
+          const videoDuration = video.duration * 1000;
+          requestAnimationFrame(() => {
+            const activeBar = bars[currentIndex];
+            activeBar.style.transition = `width ${videoDuration}ms linear`;
+            activeBar.style.width = '100%';
+          });
+          timer = setTimeout(() => showStatus(currentIndex + 1), videoDuration);
+        });
+      } else {
+        mediaContainer.innerHTML = `<img class="status-media" src="${item.mediaUrl}">`;
+        requestAnimationFrame(() => {
+          const activeBar = bars[currentIndex];
+          activeBar.style.transition = `width ${DURATION}ms linear`;
+          activeBar.style.width = '100%';
+        });
+        timer = setTimeout(() => showStatus(currentIndex + 1), DURATION);
+      }
 
     tapLeft.addEventListener('click', () => showStatus(currentIndex - 1));
     tapRight.addEventListener('click', () => showStatus(currentIndex + 1));
