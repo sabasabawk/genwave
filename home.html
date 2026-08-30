@@ -191,6 +191,13 @@
     .empty-state { text-align: center; padding: 40px 20px; color: var(--muted-text); }
     .empty-state .icon { font-size: 44px; margin-bottom: 10px; }
 
+    #load-more-sentinel {
+      text-align: center;
+      padding: 16px;
+      color: var(--muted-text);
+      font-size: 13px;
+    }
+
     .fab {
       position: fixed;
       right: 20px;
@@ -279,7 +286,7 @@
     </div>
 
 <!-- =====================================================
-     PART 6 OF 7 — FEED
+     PART 6 OF 7 — FEED + LOAD MORE
 ===================================================== -->
 
     <div id="posts-feed">
@@ -288,6 +295,8 @@
         <p>Loading your feed...</p>
       </div>
     </div>
+
+    <div id="load-more-sentinel"></div>
   </div>
 
   <a href="create-post.html" class="fab">+</a>
@@ -312,13 +321,13 @@
   </div>
 
 <!-- =====================================================
-     PART 7 OF 7 — FIREBASE LOGIC
+     PART 7 OF 7 — FIREBASE LOGIC WITH PAGINATION
 ===================================================== -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, orderBy, limit, startAfter, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -333,13 +342,18 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    const POSTS_PER_PAGE = 50;
     let currentUser = null;
     let selectedCategory = "For You";
     let allPosts = [];
+    let lastVisibleDoc = null;
+    let noMorePosts = false;
+    let isLoadingMore = false;
 
     const feed = document.getElementById('posts-feed');
     const categories = document.getElementById('categories');
     const statusStrip = document.getElementById('status-strip');
+    const loadMoreSentinel = document.getElementById('load-more-sentinel');
 
     categories.addEventListener('click', (e) => {
       const chip = e.target.closest('.chip');
@@ -393,6 +407,16 @@
           </div>
         `;
       }).join('');
+
+      updateSentinelText();
+    }
+
+    function updateSentinelText() {
+      if (noMorePosts) {
+        loadMoreSentinel.textContent = allPosts.length > 0 ? "You're all caught up 🌊" : "";
+      } else {
+        loadMoreSentinel.textContent = "";
+      }
     }
 
     feed.addEventListener('click', async (e) => {
@@ -501,18 +525,60 @@
       }
     }
 
-    async function loadPosts() {
+    async function loadFirstPage() {
       try {
-        const snapshot = await getDocs(collection(db, "posts"));
-        allPosts = snapshot.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        const firstQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(POSTS_PER_PAGE));
+        const snapshot = await getDocs(firstQuery);
+
+        allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        lastVisibleDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+        noMorePosts = snapshot.docs.length < POSTS_PER_PAGE;
+
         renderFeed();
       } catch (err) {
         console.error("Error loading posts:", err);
         feed.innerHTML = `<div class="empty-state"><div class="icon">🌊</div><p>Your feed is just getting started.<br>Tap + to share your first post!</p></div>`;
       }
     }
+
+    async function loadMorePosts() {
+      if (isLoadingMore || noMorePosts || !lastVisibleDoc) return;
+      isLoadingMore = true;
+      loadMoreSentinel.textContent = "Loading more...";
+
+      try {
+        const nextQuery = query(
+          collection(db, "posts"),
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisibleDoc),
+          limit(POSTS_PER_PAGE)
+        );
+        const snapshot = await getDocs(nextQuery);
+
+        if (snapshot.empty) {
+          noMorePosts = true;
+        } else {
+          const newPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          allPosts = allPosts.concat(newPosts);
+          lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+          noMorePosts = snapshot.docs.length < POSTS_PER_PAGE;
+          renderFeed();
+        }
+      } catch (err) {
+        console.error("Error loading more posts:", err);
+      } finally {
+        isLoadingMore = false;
+        updateSentinelText();
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) loadMorePosts();
+      });
+    }, { rootMargin: "300px" });
+
+    observer.observe(loadMoreSentinel);
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -531,7 +597,7 @@
       }
 
       loadStatuses();
-      loadPosts();
+      loadFirstPage();
     });
   </script>
 
