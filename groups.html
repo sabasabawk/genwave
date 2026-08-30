@@ -88,6 +88,7 @@
       display: flex;
       gap: 14px;
       align-items: center;
+      cursor: pointer;
     }
     .group-icon {
       width: 52px;
@@ -352,14 +353,14 @@
       groupsList.innerHTML = filtered.map(g => {
         const isJoined = joinedGroupIds.has(g.id);
         return `
-          <div class="group-card">
+          <div class="group-card" onclick="window.location.href='group-discussion.html?groupId=${g.id}'">
             <div class="group-icon">${groupIcon(g.category)}</div>
             <div class="group-info">
               <h3>${g.name}</h3>
               <p>${g.description || ""}</p>
               <div class="group-meta">${g.memberCount || 0} members · ${g.category}</div>
             </div>
-            <button class="join-btn ${isJoined ? 'joined' : ''}" data-id="${g.id}">
+            <button class="join-btn ${isJoined ? 'joined' : ''}" data-id="${g.id}" onclick="event.stopPropagation()">
               ${isJoined ? 'Joined' : 'Join'}
             </button>
           </div>
