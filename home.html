@@ -53,7 +53,6 @@
     .welcome-text { font-size: 20px; font-weight: 800; margin: 0 0 4px 0; }
     .sub-text { color: var(--muted-text); font-size: 13px; margin: 0 0 16px 0; }
 
-    /* Status strip */
     .status-strip {
       display: flex;
       gap: 12px;
@@ -319,7 +318,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -372,15 +371,17 @@
         const likes = Array.isArray(post.likes) ? post.likes : [];
         const isLiked = currentUser && likes.includes(currentUser.uid);
         const commentsCount = post.commentsCount || 0;
+        const isOwner = currentUser && post.uid === currentUser.uid;
 
         return `
           <div class="post-card" data-id="${post.id}">
             <div class="post-header">
               <div class="post-author-avatar">${initial}</div>
-              <div>
+              <div style="flex:1;">
                 <div class="post-author-name">${post.authorName}</div>
                 <div class="post-time">${post.category || "General"}</div>
               </div>
+              ${isOwner ? `<button class="delete-post-btn" data-id="${post.id}" style="background:none; border:none; color:#b00020; font-size:18px;">🗑️</button>` : ''}
             </div>
             ${post.content ? `<div class="post-content">${post.content}</div>` : ""}
             ${mediaElement}
@@ -397,6 +398,21 @@
     feed.addEventListener('click', async (e) => {
       const likeBtn = e.target.closest('.like-btn');
       const shareBtn = e.target.closest('.share-btn');
+      const deleteBtn = e.target.closest('.delete-post-btn');
+
+      if (deleteBtn) {
+        if (!confirm("Delete this post?")) return;
+        const postId = deleteBtn.dataset.id;
+        try {
+          await deleteDoc(doc(db, "posts", postId));
+          allPosts = allPosts.filter(p => p.id !== postId);
+          renderFeed();
+        } catch (err) {
+          console.error("Error deleting post:", err);
+          alert("Could not delete post.");
+        }
+        return;
+      }
 
       if (likeBtn) {
         if (!currentUser) { window.location.href = "login.html"; return; }
