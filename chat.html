@@ -251,6 +251,17 @@
       return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     }
 
+    async function markConversationAsRead() {
+      if (!currentUser || !conversationId) return;
+      try {
+        await setDoc(doc(db, "conversations", conversationId, "readStatus", currentUser.uid), {
+          lastReadAt: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.log("Could not mark as read:", err);
+      }
+    }
+
     attachBtn.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', () => {
@@ -300,8 +311,11 @@
         await setDoc(doc(db, "conversations", conversationId), {
           participants: [currentUser.uid, otherUid],
           lastMessage: previewText,
-          lastMessageAt: serverTimestamp()
+          lastMessageAt: serverTimestamp(),
+          lastSenderId: currentUser.uid
         }, { merge: true });
+
+        await markConversationAsRead();
 
         messageInput.value = "";
         selectedFile = null;
@@ -346,6 +360,8 @@
 
       currentUser = user;
       conversationId = getConversationId(user.uid, otherUid);
+
+      await markConversationAsRead();
 
       try {
         const otherUserSnap = await getDoc(doc(db, "users", otherUid));
@@ -392,6 +408,7 @@
         }).join('');
 
         messagesArea.scrollTop = messagesArea.scrollHeight;
+        markConversationAsRead();
       }, (err) => {
         console.error("Error loading messages:", err);
         messagesArea.innerHTML = `<div class="empty-chat">Could not load messages.</div>`;
