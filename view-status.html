@@ -195,7 +195,7 @@
         bar.style.width = i < currentIndex ? '100%' : '0%';
       });
 
-      mediaContainer.statusTime.textContent = formatTime(item.timestamp);
+      statusTime.textContent = formatTime(item.timestamp);
 
       if (item.mediaType === 'video') {
         mediaContainer.innerHTML = `<video class="status-media" id="status-video" src="${item.mediaUrl}" autoplay playsinline></video>`;
@@ -218,9 +218,8 @@
           activeBar.style.width = '100%';
         });
         timer = setTimeout(() => showStatus(currentIndex + 1), DURATION);
-}
       }
-
+    }
 
     tapLeft.addEventListener('click', () => showStatus(currentIndex - 1));
     tapRight.addEventListener('click', () => showStatus(currentIndex + 1));
