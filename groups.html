@@ -166,6 +166,7 @@
       box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
     }
     .nav-item {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -175,7 +176,25 @@
       text-decoration: none;
     }
     .nav-item.active { color: var(--primary-color); font-weight: 700; }
-    .nav-item .nav-icon { font-size: 20px; }
+    .nav-item .nav-icon { font-size: 20px; position: relative; }
+    .unread-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 10px;
+      background: #e60023;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .unread-badge.show { display: flex; }
   </style>
 </head>
 <body>
@@ -232,7 +251,10 @@
       Groups
     </a>
     <a href="conversations.html" class="nav-item">
-      <div class="nav-icon">💬</div>
+      <div class="nav-icon">
+        💬
+        <span class="unread-badge" id="unread-badge">0</span>
+      </div>
       Messages
     </a>
     <a href="profile.html" class="nav-item">
@@ -248,7 +270,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc, increment, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -271,6 +293,7 @@
     const groupsList = document.getElementById('groups-list');
     const searchInput = document.getElementById('search-input');
     const chips = document.getElementById('chips');
+    const unreadBadge = document.getElementById('unread-badge');
 
     function groupIcon(category) {
       const icons = { Music: "🎵", Sports: "⚽", Tech: "💻", Faith: "🙏", Cooking: "🍲" };
@@ -394,10 +417,56 @@
 
     searchInput.addEventListener('input', renderGroups);
 
+    async function checkUnreadMessages() {
+      if (!currentUser) return;
+      try {
+        const convosQuery = query(
+          collection(db, "conversations"),
+          where("participants", "array-contains", currentUser.uid)
+        );
+        const snap = await getDocs(convosQuery);
+
+        let unreadCount = 0;
+
+        for (const convoDoc of snap.docs) {
+          const convo = convoDoc.data();
+          if (!convo.lastMessageAt || convo.lastSenderId === currentUser.uid) continue;
+
+          try {
+            const readSnap = await getDoc(doc(db, "conversations", convoDoc.id, "readStatus", currentUser.uid));
+            const lastReadAt = readSnap.exists() ? readSnap.data().lastReadAt : null;
+
+            const lastMsgTime = convo.lastMessageAt?.toMillis?.() || 0;
+            const lastReadTime = lastReadAt?.toMillis?.() || 0;
+
+            if (lastMsgTime > lastReadTime) {
+              unreadCount++;
+            }
+          } catch (err) {
+            console.log("Could not check read status:", err);
+          }
+        }
+
+        if (unreadCount > 0) {
+          unreadBadge.textContent = unreadCount > 9 ? "9+" : unreadCount;
+          unreadBadge.classList.add('show');
+        } else {
+          unreadBadge.classList.remove('show');
+        }
+      } catch (err) {
+        console.error("Error checking unread messages:", err);
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
       currentUser = user;
-      if (user) await loadJoinedGroups();
+      await loadJoinedGroups();
       await loadGroups();
+      checkUnreadMessages();
     });
   </script>
 
