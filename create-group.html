@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- =====================================================
+     PART 1 OF 4 — DOCUMENT SETUP AND STYLES
+===================================================== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Group - GenWave</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --bg-color: #f4f7f6;
+      --text-color: #222222;
+      --muted-text: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+    .topbar {
+      background: linear-gradient(135deg, #007bff, #00d2ff);
+      color: white;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+    }
+    .topbar a { color: white; text-decoration: none; font-size: 22px; }
+    .topbar .title { font-size: 16px; font-weight: 700; }
+    .create-btn-top {
+      background: white;
+      color: var(--primary-color);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .create-btn-top:disabled { opacity: 0.6; }
+
+    .form-card { padding: 20px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted-text);
+      margin-bottom: 6px;
+      margin-top: 18px;
+    }
+    label:first-child { margin-top: 0; }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      background: white;
+    }
+    textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+
+    .categories-scroll { display: flex; gap: 8px; overflow-x: auto; margin-top: 8px; }
+    .chip {
+      background: #e4e6eb;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .chip.active { background: var(--primary-color); color: white; }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     PART 2 OF 4 — TOP BAR
+===================================================== -->
+
+  <div class="topbar">
+    <a href="groups.html">&times;</a>
+    <div class="title">Create Group</div>
+    <button class="create-btn-top" id="create-btn">Create</button>
+  </div>
+
+<!-- =====================================================
+     PART 3 OF 4 — FORM
+===================================================== -->
+
+  <div class="form-card">
+    <label>Group Name</label>
+    <input type="text" id="group-name" placeholder="e.g. Weekend Hikers" maxlength="50">
+
+    <label>Description</label>
+    <textarea id="group-description" placeholder="What's this group about?"></textarea>
+
+    <label>Category</label>
+    <div class="categories-scroll" id="categories">
+      <button class="chip active" data-category="Music">Music</button>
+      <button class="chip" data-category="Sports">Sports</button>
+      <button class="chip" data-category="Tech">Tech</button>
+      <button class="chip" data-category="Faith">Faith</button>
+      <button class="chip" data-category="Cooking">Cooking</button>
+    </div>
+  </div>
+
+<!-- =====================================================
+     PART 4 OF 4 — FIREBASE LOGIC
+===================================================== -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let selectedCategory = "Music";
+
+    const nameInput = document.getElementById('group-name');
+    const descInput = document.getElementById('group-description');
+    const createBtn = document.getElementById('create-btn');
+    const categories = document.getElementById('categories');
+
+    categories.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      selectedCategory = chip.dataset.category;
+      categories.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+
+    createBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+
+      if (!name) {
+        alert("Please enter a group name.");
+        return;
+      }
+
+      createBtn.disabled = true;
+      createBtn.textContent = "Creating...";
+
+      try {
+        const groupRef = doc(collection(db, "groups"));
+        await setDoc(groupRef, {
+          name: name,
+          description: description,
+          category: selectedCategory,
+          memberCount: 0,
+          createdBy: currentUser.uid,
+          createdAt: new Date()
+        });
+
+        window.location.href = "groups.html";
+      } catch (err) {
+        console.error("Error creating group:", err);
+        alert("Could not create group. Please try again.");
+        createBtn.disabled = false;
+        createBtn.textContent = "Create";
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+    });
+  </script>
+
+</body>
+</html>
