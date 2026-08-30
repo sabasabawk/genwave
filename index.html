@@ -223,6 +223,30 @@
   <footer>
     &copy; GenWave App. Built with Firebase & GitHub Pages.
   </footer>
+<!-- =====================================================
+     PART 6 OF 6 — AUTH CHECK (SKIP LOGIN IF ALREADY SIGNED IN)
+===================================================== -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
+      authDomain: "genwave-f7e38.firebaseapp.com",
+      projectId: "genwave-f7e38",
+      storageBucket: "genwave-f7e38.firebasestorage.app",
+      messagingSenderId: "464171809471",
+      appId: "1:464171809471:web:9051791ab5b5f99616a40a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "home.html";
+      }
+    });
+  </script>
 </body>
 </html>
