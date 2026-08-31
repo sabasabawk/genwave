@@ -299,6 +299,21 @@
           mediaUrl = await uploadToCloudinary(selectedFile);
         }
 
+        const previewText = text || (mediaType === 'video' ? "📹 Video" : "📷 Photo");
+
+        // Create/update the parent conversation doc FIRST. Many
+        // Firestore security rules check this doc's "participants"
+        // field to decide whether the messages subcollection can be
+        // read or written — doing this before addDoc() below means
+        // that check always finds a valid parent doc, even for the
+        // very first message of a brand new conversation.
+        await setDoc(doc(db, "conversations", conversationId), {
+          participants: [currentUser.uid, otherUid],
+          lastMessage: previewText,
+          lastMessageAt: serverTimestamp(),
+          lastSenderId: currentUser.uid
+        }, { merge: true });
+
         await addDoc(collection(db, "conversations", conversationId, "messages"), {
           senderId: currentUser.uid,
           text: text,
@@ -306,14 +321,6 @@
           mediaType: mediaType,
           timestamp: serverTimestamp()
         });
-
-        const previewText = text || (mediaType === 'video' ? "📹 Video" : "📷 Photo");
-        await setDoc(doc(db, "conversations", conversationId), {
-          participants: [currentUser.uid, otherUid],
-          lastMessage: previewText,
-          lastMessageAt: serverTimestamp(),
-          lastSenderId: currentUser.uid
-        }, { merge: true });
 
         await markConversationAsRead();
 
@@ -324,7 +331,7 @@
         mediaPreview.innerHTML = '';
       } catch (err) {
         console.error("Error sending message:", err);
-        alert("Message could not be sent.");
+        alert("Message could not be sent: " + (err.code || err.message || "unknown error"));
       } finally {
         sendBtn.disabled = false;
       }
@@ -411,7 +418,7 @@
         markConversationAsRead();
       }, (err) => {
         console.error("Error loading messages:", err);
-        messagesArea.innerHTML = `<div class="empty-chat">Could not load messages.</div>`;
+        messagesArea.innerHTML = `<div class="empty-chat">Could not load messages: ${err.code || err.message || "unknown error"}</div>`;
       });
     });
   </script>
