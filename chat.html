@@ -368,6 +368,26 @@
       currentUser = user;
       conversationId = getConversationId(user.uid, otherUid);
 
+      // Ensure the parent conversation document exists BEFORE
+      // reading or writing anything in its "messages" or
+      // "readStatus" subcollections. Firestore security rules
+      // commonly check this parent doc's "participants" field to
+      // authorize subcollection access — for a brand new
+      // conversation that document doesn't exist yet, so any read
+      // or write attempted before this point gets rejected with
+      // permission-denied. This only ever adds the participants
+      // field (merge:true) so it never overwrites lastMessage data
+      // on an existing conversation.
+      try {
+        await setDoc(doc(db, "conversations", conversationId), {
+          participants: [user.uid, otherUid]
+        }, { merge: true });
+      } catch (err) {
+        console.error("Error initializing conversation:", err);
+        messagesArea.innerHTML = `<div class="empty-chat">Could not open this conversation: ${err.code || err.message || "unknown error"}</div>`;
+        return;
+      }
+
       await markConversationAsRead();
 
       try {
