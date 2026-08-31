@@ -337,7 +337,7 @@
         await checkMembership();
       } catch (err) {
         console.error("Error toggling membership:", err);
-        alert("Could not update membership.");
+        alert("Could not update membership: " + (err.code || err.message || "unknown error"));
       } finally {
         joinToggleBtn.disabled = false;
       }
@@ -401,7 +401,7 @@
         await loadGroupPosts();
       } catch (err) {
         console.error("Error posting to group:", err);
-        alert("Could not post. Please try again.");
+        alert("Could not post: " + (err.code || err.message || "unknown error"));
       } finally {
         postBtn.disabled = false;
         postBtn.textContent = "Post";
@@ -473,7 +473,7 @@
         renderGroupPosts();
       } catch (err) {
         console.error("Error loading group posts:", err);
-        postsList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load discussion.</p></div>`;
+        postsList.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Could not load discussion: ${err.code || err.message || "unknown error"}</p></div>`;
       }
     }
 
