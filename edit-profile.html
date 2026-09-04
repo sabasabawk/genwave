@@ -125,7 +125,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -157,11 +157,32 @@
           document.getElementById('bio').value = data.bio || "";
           document.getElementById('interests').value = Array.isArray(data.interests) ? data.interests.join(", ") : "";
           document.getElementById('location').value = data.location || "";
+        } else {
+          // No profile document exists yet — pre-fill from the
+          // Firebase Auth account so the form isn't empty, and
+          // the first save below will create the document.
+          document.getElementById('fullname').value = user.displayName || "";
         }
       } catch (err) {
         console.error("Error loading profile for editing:", err);
       }
     });
+
+    /* =====================================================
+       FRIENDLY ERROR MESSAGES
+    ===================================================== */
+    function getFriendlyErrorMessage(err) {
+      const code = String(err?.code || "").toLowerCase();
+      const message = String(err?.message || "");
+
+      if (code.includes("permission-denied")) {
+        return "You don't have permission to save this profile. Check your Firestore security rules.";
+      }
+      if (code.includes("unavailable") || message.toLowerCase().includes("offline")) {
+        return "Your connection seems weak right now. Check your signal or WiFi and try again.";
+      }
+      return message || "Could not save changes. Please try again.";
+    }
 
     document.getElementById('edit-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -174,14 +195,40 @@
       const interests = document.getElementById('interests').value.split(',').map(i => i.trim()).filter(Boolean);
       const location = document.getElementById('location').value.trim();
 
+      if (!fullName) {
+        alert("Please enter your full name.");
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
+        return;
+      }
+
       try {
-        await updateDoc(doc(db, "users", currentUser.uid), {
-          fullName, bio, interests, location
-        });
+        /*
+           setDoc with merge:true creates the profile
+           document if it doesn't exist yet, or updates
+           it if it does — this is what fixes the "Could
+           not save changes" error that happened when a
+           user's Firestore profile document had never
+           been created (e.g. it only ever existed as a
+           Firebase Authentication account).
+        */
+        await setDoc(
+          doc(db, "users", currentUser.uid),
+          {
+            uid: currentUser.uid,
+            fullName,
+            bio,
+            interests,
+            location,
+            email: currentUser.email || ""
+          },
+          { merge: true }
+        );
+
         window.location.href = "profile.html";
       } catch (err) {
         console.error("Error saving profile:", err);
-        alert("Could not save changes. Please try again.");
+        alert(getFriendlyErrorMessage(err));
         saveBtn.disabled = false;
         saveBtn.textContent = "Save Changes";
       }
