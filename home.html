@@ -36,6 +36,24 @@
       justify-content: space-between;
       align-items: center;
     }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .admin-link {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
     .user-avatar-small {
       width: 36px;
       height: 36px;
@@ -187,6 +205,23 @@
       color: var(--muted-text);
     }
     .post-actions button.liked { background: #ffe5ea; color: #c2183b; }
+    .post-actions button.report-btn { background: #fff0e0; color: #a35a00; }
+
+    .admin-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .admin-delete-btn {
+      background: #3a1010;
+      color: #ffffff;
+      border: none;
+      padding: 9px 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
 
     .empty-state { text-align: center; padding: 40px 20px; color: var(--muted-text); }
     .empty-state .icon { font-size: 44px; margin-bottom: 10px; }
@@ -257,6 +292,74 @@
       line-height: 1;
     }
     .unread-badge.show { display: flex; }
+
+    /* =====================================================
+       REPORT MODAL
+    ===================================================== */
+    #report-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.55);
+    }
+    #report-modal.open { display: flex; }
+    .report-modal-card {
+      width: 100%;
+      max-width: 400px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    }
+    .report-modal-card h3 {
+      font-size: 18px;
+      margin: 0 0 6px 0;
+    }
+    .report-modal-card p {
+      color: var(--muted-text);
+      font-size: 13px;
+      margin: 0 0 16px 0;
+      line-height: 1.5;
+    }
+    .report-reason-option {
+      display: block;
+      width: 100%;
+      padding: 12px 13px;
+      margin-bottom: 8px;
+      border: 1px solid #e1e6eb;
+      border-radius: 11px;
+      background: #f9fafb;
+      color: var(--text-color);
+      text-align: left;
+      font-size: 14px;
+    }
+    .report-reason-option.selected {
+      border-color: var(--primary-color);
+      background: #e7f3ff;
+      font-weight: 700;
+    }
+    .report-modal-actions {
+      display: flex;
+      gap: 9px;
+      margin-top: 14px;
+    }
+    .report-modal-actions button {
+      flex: 1;
+      min-height: 44px;
+      border: none;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    #report-cancel-btn { background: #e4e6eb; color: var(--text-color); }
+    #report-submit-btn { background: var(--primary-color); color: white; }
+    #report-submit-btn:disabled { opacity: .6; }
   </style>
 </head>
 <body>
@@ -267,7 +370,9 @@
 
   <div class="topbar">
     <span>GenWave</span>
-    <a href="profile.html" class="user-avatar-small" id="user-initial">U</a>
+    <div class="topbar-actions" id="topbar-actions">
+      <a href="profile.html" class="user-avatar-small" id="user-initial">U</a>
+    </div>
   </div>
 
 <!-- =====================================================
@@ -343,13 +448,37 @@
   </div>
 
 <!-- =====================================================
+     REPORT POST MODAL
+===================================================== -->
+
+  <div id="report-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Report this post">
+    <div class="report-modal-card">
+      <h3>🚩 Report this post</h3>
+      <p>Let us know why you're reporting this post. Our team will review it.</p>
+
+      <div id="report-reason-list">
+        <button type="button" class="report-reason-option" data-reason="Spam">Spam or misleading</button>
+        <button type="button" class="report-reason-option" data-reason="Abusive language">Abusive or hateful language</button>
+        <button type="button" class="report-reason-option" data-reason="Inappropriate content">Inappropriate content</button>
+        <button type="button" class="report-reason-option" data-reason="Harassment">Harassment or bullying</button>
+        <button type="button" class="report-reason-option" data-reason="Other">Other</button>
+      </div>
+
+      <div class="report-modal-actions">
+        <button type="button" id="report-cancel-btn">Cancel</button>
+        <button type="button" id="report-submit-btn" disabled>Submit report</button>
+      </div>
+    </div>
+  </div>
+
+<!-- =====================================================
      PART 7 OF 7 — FIREBASE LOGIC WITH PAGINATION + UNREAD BADGE
 ===================================================== -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBntgbWufmOsE-zW3sqpF8MXlXpCfvTUb4",
@@ -366,6 +495,8 @@
 
     const POSTS_PER_PAGE = 50;
     let currentUser = null;
+    let currentUserName = "Member";
+    let currentUserIsAdmin = false;
     let selectedCategory = "For You";
     let allPosts = [];
     let lastVisibleDoc = null;
@@ -377,6 +508,18 @@
     const statusStrip = document.getElementById('status-strip');
     const loadMoreSentinel = document.getElementById('load-more-sentinel');
     const unreadBadge = document.getElementById('unread-badge');
+    const topbarActions = document.getElementById('topbar-actions');
+
+    // Report modal elements
+    const reportModal = document.getElementById('report-modal');
+    const reportReasonList = document.getElementById('report-reason-list');
+    const reportCancelBtn = document.getElementById('report-cancel-btn');
+    const reportSubmitBtn = document.getElementById('report-submit-btn');
+
+    let reportTargetPostId = null;
+    let reportTargetAuthorId = null;
+    let reportTargetMessage = "";
+    let selectedReportReason = null;
 
     categories.addEventListener('click', (e) => {
       const chip = e.target.closest('.chip');
@@ -386,6 +529,33 @@
       chip.classList.add('active');
       renderFeed();
     });
+
+    /* =====================================================
+       ADMIN REPORTS LINK
+
+       Only ever inserted into the top bar when
+       currentUserIsAdmin is true — for every
+       other account this is simply never added
+       to the page, not just hidden with CSS.
+    ===================================================== */
+    function updateAdminLink() {
+      const existing = document.getElementById('admin-reports-link');
+      if (!currentUserIsAdmin) {
+        if (existing) existing.remove();
+        return;
+      }
+      if (existing) return;
+
+      const link = document.createElement('a');
+      link.id = 'admin-reports-link';
+      link.href = 'admin-reports.html';
+      link.className = 'admin-link';
+      link.title = 'Reported posts';
+      link.setAttribute('aria-label', 'Review reported posts');
+      link.textContent = '🛡️';
+
+      topbarActions.insertBefore(link, topbarActions.firstChild);
+    }
 
     function renderFeed() {
       const filtered = selectedCategory === "For You"
@@ -409,6 +579,9 @@
         const isLiked = currentUser && likes.includes(currentUser.uid);
         const commentsCount = post.commentsCount || 0;
         const isOwner = currentUser && post.uid === currentUser.uid;
+        const canReport = currentUser && post.uid && post.uid !== currentUser.uid;
+        const canAdminDelete = currentUserIsAdmin && !isOwner;
+        const safeContent = (post.content || "").replace(/'/g, "&#39;");
 
         return `
           <div class="post-card" data-id="${post.id}">
@@ -427,6 +600,14 @@
               <a href="comments.html?postId=${post.id}" class="comment-btn" style="text-align:center; text-decoration:none; display:block;">💬 ${commentsCount > 0 ? commentsCount : 'Comment'}</a>
               <button class="share-btn" data-id="${post.id}">🔗 Share</button>
             </div>
+            ${canReport ? `
+            <div class="admin-actions">
+              <button class="report-btn" data-id="${post.id}" data-author="${post.uid}" data-message="${safeContent}">🚩 Report this post</button>
+            </div>` : ''}
+            ${canAdminDelete ? `
+            <div class="admin-actions">
+              <button class="admin-delete-btn" data-id="${post.id}">🛡️ Remove Post (Admin)</button>
+            </div>` : ''}
           </div>
         `;
       }).join('');
@@ -442,14 +623,106 @@
       }
     }
 
+    /* =====================================================
+       REPORT MODAL LOGIC
+    ===================================================== */
+    function openReportModal(postId, authorId, message) {
+      if (!currentUser) { window.location.href = "login.html"; return; }
+
+      reportTargetPostId = postId;
+      reportTargetAuthorId = authorId || "";
+      reportTargetMessage = message || "";
+      selectedReportReason = null;
+
+      reportReasonList.querySelectorAll('.report-reason-option').forEach(b => b.classList.remove('selected'));
+      reportSubmitBtn.disabled = true;
+      reportSubmitBtn.textContent = "Submit report";
+
+      reportModal.classList.add('open');
+      reportModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportModal() {
+      reportModal.classList.remove('open');
+      reportModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      reportTargetPostId = null;
+      reportTargetAuthorId = null;
+      reportTargetMessage = "";
+      selectedReportReason = null;
+    }
+
+    reportReasonList.addEventListener('click', (e) => {
+      const option = e.target.closest('.report-reason-option');
+      if (!option) return;
+      reportReasonList.querySelectorAll('.report-reason-option').forEach(b => b.classList.remove('selected'));
+      option.classList.add('selected');
+      selectedReportReason = option.dataset.reason || "Other";
+      reportSubmitBtn.disabled = false;
+    });
+
+    reportCancelBtn.addEventListener('click', closeReportModal);
+
+    reportModal.addEventListener('click', (e) => {
+      if (e.target === reportModal) closeReportModal();
+    });
+
+    reportSubmitBtn.addEventListener('click', async () => {
+      if (!currentUser || !reportTargetPostId || !selectedReportReason) return;
+
+      reportSubmitBtn.disabled = true;
+      reportSubmitBtn.textContent = "Submitting...";
+
+      try {
+        await addDoc(collection(db, "reports"), {
+          postId: reportTargetPostId,
+          postAuthorId: reportTargetAuthorId,
+          postMessageSnapshot: reportTargetMessage.slice(0, 300),
+          reporterId: currentUser.uid,
+          reporterName: currentUserName,
+          reason: selectedReportReason,
+          status: "pending",
+          timestamp: serverTimestamp()
+        });
+
+        alert("Thank you — this post has been reported and will be reviewed.");
+        closeReportModal();
+      } catch (err) {
+        console.error("Error submitting report:", err);
+        alert("The report could not be submitted. Please try again.");
+        reportSubmitBtn.disabled = false;
+        reportSubmitBtn.textContent = "Submit report";
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && reportModal.classList.contains('open')) {
+        closeReportModal();
+      }
+    });
+
     feed.addEventListener('click', async (e) => {
       const likeBtn = e.target.closest('.like-btn');
       const shareBtn = e.target.closest('.share-btn');
       const deleteBtn = e.target.closest('.delete-post-btn');
+      const reportBtn = e.target.closest('.report-btn');
+      const adminDeleteBtn = e.target.closest('.admin-delete-btn');
 
-      if (deleteBtn) {
-        if (!confirm("Delete this post?")) return;
-        const postId = deleteBtn.dataset.id;
+      if (reportBtn) {
+        openReportModal(
+          reportBtn.dataset.id,
+          reportBtn.dataset.author,
+          reportBtn.dataset.message
+        );
+        return;
+      }
+
+      if (deleteBtn || adminDeleteBtn) {
+        const btn = deleteBtn || adminDeleteBtn;
+        const isAdminAction = !!adminDeleteBtn;
+        if (!confirm(isAdminAction ? "Remove this post as admin? This cannot be undone." : "Delete this post?")) return;
+        const postId = btn.dataset.id;
         try {
           await deleteDoc(doc(db, "posts", postId));
           allPosts = allPosts.filter(p => p.id !== postId);
@@ -654,8 +927,11 @@
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const name = userDoc.exists() ? (userDoc.data().fullName || "Member") : (user.displayName || "Member");
+        currentUserName = name;
+        currentUserIsAdmin = userDoc.exists() && userDoc.data().isAdmin === true;
         document.getElementById('welcome-header').textContent = `Welcome back, ${name} 👋`;
         document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
+        updateAdminLink();
       } catch (err) {
         console.error("Error loading profile:", err);
       }
